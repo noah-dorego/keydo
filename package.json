@@ -1,0 +1,19 @@
+{
+  "name": "keydo",
+  "version": "1.0.0",
+  "description": "Shortcut key configs for anything",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/noah-dorego/keydo.git"
+  },
+  "author": "Noah do Rego",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/noah-dorego/keydo/issues"
+  },
+  "homepage": "https://github.com/noah-dorego/keydo#readme"
+}
