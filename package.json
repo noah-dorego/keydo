@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/noah-dorego/keydo/issues"
   },
-  "homepage": "https://github.com/noah-dorego/keydo#readme"
+  "homepage": "https://github.com/noah-dorego/keydo#readme",
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
 }
