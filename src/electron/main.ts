@@ -6,9 +6,11 @@ import { Key } from "./types.js";
 import { constants, registerShortcut } from "./constants.js";
 import { isDev } from "./utils.js";
 
+let mainWindow: BrowserWindow | null;
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({});
+  mainWindow = new BrowserWindow({});
 
   // Load from hosted port in dev mode, and from build in prod
   if (isDev()) {
@@ -17,6 +19,10 @@ const createWindow = () => {
     // and load the index.html of the app.
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
   }
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -29,7 +35,9 @@ app.whenReady().then(() => {
   createWindow();
 
   globalShortcut.register(constants.startCommand.join("+"), () => {
-    createWindow();
+    if (!mainWindow) {
+      createWindow();
+    }
   });
 
   registerShortcut([Key.Alt, Key.A], () => console.log("hello vro"));
