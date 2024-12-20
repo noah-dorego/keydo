@@ -3,14 +3,20 @@ import path from "path";
 
 import { Key } from "./types.js";
 
-import { registerShortcut } from "./methods.js";
+import { constants, registerShortcut } from "./constants.js";
+import { isDev } from "./utils.js";
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({});
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
+  // Load from hosted port in dev mode, and from build in prod
+  if (isDev()) {
+    mainWindow.loadURL("http://localhost:5173");
+  } else {
+    // and load the index.html of the app.
+    mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
+  }
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -22,9 +28,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
-  const startCommand = [Key.Alt, Key.CommandOrControl, Key.X];
-  globalShortcut.register(startCommand.join("+"), () => {
-    console.log("Electron loves global shortcuts!");
+  globalShortcut.register(constants.startCommand.join("+"), () => {
     createWindow();
   });
 
@@ -37,7 +41,5 @@ app.whenReady().then(() => {
   });
 });
 
-// Quit when all windows are closed, except on macOS.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+// Do not quit when windows are closed, continue listening for shortcuts
+app.on("window-all-closed", () => {});

@@ -1,0 +1,15 @@
+{
+    "appId": "com.ndorego.keydo",
+    "files": ["dist-electron", "dist-react"],
+    "icon": "./keydo_icon_dark.png",
+    "mac": {
+        "target": "dmg"
+    },
+    "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+    },
+    "win": {
+        "target": ["portable", "msi"]
+    }
+}
