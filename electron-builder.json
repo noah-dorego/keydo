@@ -1,6 +1,7 @@
 {
     "appId": "com.ndorego.keydo",
     "files": ["dist-electron", "dist-react"],
+    "extraResources": ["dist-electron/preload.cjs"],
     "icon": "./keydo_icon_dark.png",
     "mac": {
         "target": "dmg"

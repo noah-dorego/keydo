@@ -1,29 +1,39 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
+import { NavBar } from "../components/navbar.tsx";
+import { ShortcutList } from "@/components/shortcut-list.tsx";
+
+import { Key, ShortcutProps } from "./types.ts";
+
+// adding type for IPC event handlers
+declare global {
+  interface Window {
+    electron: {
+      addShortcut: (data: ShortcutProps) => Promise<any>;
+    };
+  }
+}
 
 function App() {
-  const [count, setCount] = useState(0);
+  const addNewShortcut = async () => {
+    const data = {
+      command: [Key.Y, Key.Alt],
+      action: "TEST NEW SHORTCUT",
+    };
+
+    try {
+      const response = await window.electron.addShortcut(data);
+      console.log("Response from Electron:", response);
+    } catch (error) {
+      console.error("Error sending data to Electron:", error);
+    }
+  };
 
   return (
     <>
-      <div>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>keydo</h1>
+      <NavBar />
+      <ShortcutList />
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button onClick={() => addNewShortcut()}>Add test</button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }

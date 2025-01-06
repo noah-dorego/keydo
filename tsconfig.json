@@ -18,7 +18,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@electron/*": ["/src/electron/*"]
+      "@electron/*": ["/src/electron/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],
