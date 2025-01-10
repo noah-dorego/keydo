@@ -1,5 +1,6 @@
 import { app, globalShortcut, BrowserWindow, ipcMain } from "electron";
 import path from "path";
+import fs from "fs";
 
 import { Key } from "./types.js";
 
@@ -7,6 +8,8 @@ import * as utils from "./utils.js";
 import * as constants from "./constants.js";
 
 let mainWindow: BrowserWindow | null;
+
+let shortcutList = {};
 
 const createWindow = () => {
   // Create the browser window.
@@ -38,6 +41,20 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
+  // Get list of shortvuts from file (if exists)
+  if (fs.existsSync(constants.SHORTCUT_LIST_PATH)) {
+    try {
+      shortcutList = JSON.parse(
+        fs.readFileSync(constants.SHORTCUT_LIST_PATH, "utf-8")
+      );
+    } catch (error) {
+      console.log("unable to read file: ", error);
+    }
+  } else {
+    console.log("file doesn't exist");
+    fs.writeFileSync(constants.SHORTCUT_LIST_PATH, "{}");
+  }
+
   globalShortcut.register(constants.startCommand.join("+"), () => {
     if (!mainWindow) {
       createWindow();
@@ -56,7 +73,12 @@ app.whenReady().then(() => {
   ipcMain.handle("add-shortcut", (event, data) => {
     console.log("adding shortcut test");
     utils.registerShortcut(data.command, data.action);
+    // write to file
     return "adding event";
+  });
+
+  ipcMain.handle("get-shortcuts", () => {
+    return shortcutList;
   });
 });
 

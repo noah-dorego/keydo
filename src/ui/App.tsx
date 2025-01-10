@@ -7,33 +7,17 @@ import { Key, ShortcutProps } from "./types.ts";
 declare global {
   interface Window {
     electron: {
+      getShortcuts: () => Promise<any>;
       addShortcut: (data: ShortcutProps) => Promise<any>;
     };
   }
 }
 
 function App() {
-  const addNewShortcut = async () => {
-    const data = {
-      command: [Key.Y, Key.Alt],
-      action: "TEST NEW SHORTCUT",
-    };
-
-    try {
-      const response = await window.electron.addShortcut(data);
-      console.log("Response from Electron:", response);
-    } catch (error) {
-      console.error("Error sending data to Electron:", error);
-    }
-  };
-
   return (
     <>
       <NavBar />
       <ShortcutList />
-      <div className="card">
-        <button onClick={() => addNewShortcut()}>Add test</button>
-      </div>
     </>
   );
 }
