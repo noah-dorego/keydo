@@ -1,7 +1,9 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NavBar } from "../components/navbar.tsx";
 import { ShortcutList } from "@/components/shortcut-list.tsx";
+import { SettingsPage } from "../pages/settings_page.tsx";
 
-import { Key, ShortcutProps } from "./types.ts";
+import { ShortcutProps } from "./types.ts";
 
 // adding type for IPC event handlers
 declare global {
@@ -15,10 +17,13 @@ declare global {
 
 function App() {
   return (
-    <>
+    <BrowserRouter>
       <NavBar />
-      <ShortcutList />
-    </>
+      <Routes>
+        <Route path="/" element={<ShortcutList />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

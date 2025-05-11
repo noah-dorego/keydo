@@ -1,13 +1,10 @@
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "./ui/navigation-menu.tsx";
 
+import { Link } from "react-router-dom";
 import { FaGear } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa";
 
@@ -27,9 +24,11 @@ export function NavBar() {
             </div>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <div className="rounded-full bg-black w-8 h-8 flex justify-center items-center">
-              <FaGear size={16} color="white" />
-            </div>
+            <Link to="/settings" title="Settings">
+              <div className="rounded-full bg-black w-8 h-8 flex justify-center items-center">
+                <FaGear size={16} color="white" />
+              </div>
+            </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
