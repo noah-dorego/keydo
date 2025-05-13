@@ -1,7 +1,6 @@
 import path from "path";
 import { app, globalShortcut } from "electron";
 import fs from "fs";
-import { Key } from "./types.js";
 import { SHORTCUT_LIST_PATH } from "./constants.js";
 
 export function isDev(): boolean {
@@ -16,19 +15,19 @@ export function getPreloadPath() {
   );
 }
 
-export const registerShortcut = (command: Key[], action: string) => {
+export const registerShortcut = (accelerator: string, actionType: string) => {
   try {
-    globalShortcut.register(command.join("+"), () => console.log(action));
+    globalShortcut.register(accelerator, () => console.log(actionType));
     return true;
   } catch (error) {
+    console.log("Error registering shortcut", error);
     return false;
   }
 };
 
-export const removeShortcut = (command: Key[]) => {
-  const commandString = command.join("+");
-  if (globalShortcut.isRegistered(commandString)) {
-    globalShortcut.unregister(command.join("+"));
+export const removeShortcut = (accelerator: string) => {
+  if (globalShortcut.isRegistered(accelerator)) {
+    globalShortcut.unregister(accelerator);
     return true;
   } else {
     return false;

@@ -2,7 +2,7 @@ import { FaPlus } from "react-icons/fa6";
 import { Button } from "./ui/button.tsx";
 import { ShortcutRow } from "./shortcut-row.tsx";
 
-import { Key } from "../electron/types.ts";
+import { Key } from "../ui/types.ts";
 import { useEffect, useState } from "react";
 
 export function ShortcutList() {
@@ -17,9 +17,17 @@ export function ShortcutList() {
   }, []);
 
   const addNewShortcut = async () => {
+    const command = [Key.Y, Key.Alt].join("+");
+
     const data = {
-      command: [Key.Y, Key.Alt],
-      action: "TEST NEW SHORTCUT",
+      "id": "unique-shortcut-id",
+      "name": "User-Friendly Name",
+      "accelerator": command,
+      "actionType": "predefinedAction",
+      "actionDetails": {
+        // Parameters specific to the actionType
+        "param1": "value1"
+      }
     };
 
     try {

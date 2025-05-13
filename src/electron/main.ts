@@ -2,8 +2,6 @@ import { app, globalShortcut, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import fs from "fs";
 
-import { Key } from "./types.js";
-
 import * as utils from "./utils.js";
 import * as constants from "./constants.js";
 
@@ -55,13 +53,13 @@ app.whenReady().then(() => {
     fs.writeFileSync(constants.SHORTCUT_LIST_PATH, "{}");
   }
 
-  globalShortcut.register(constants.startCommand.join("+"), () => {
+  globalShortcut.register(constants.startCommand, () => {
     if (!mainWindow) {
       createWindow();
     }
   });
 
-  utils.registerShortcut([Key.Alt, Key.A], "testName");
+  utils.registerShortcut("Alt+A", "testName");
 
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
@@ -71,8 +69,8 @@ app.whenReady().then(() => {
 
   // Define IPC event handlers
   ipcMain.handle("add-shortcut", (event, data) => {
-    console.log("adding shortcut test");
-    utils.registerShortcut(data.command, data.action);
+    console.log("adding shortcut: ", data);
+    utils.registerShortcut(data.accelerator, data.actionType);
     // write to file
     return "adding event";
   });

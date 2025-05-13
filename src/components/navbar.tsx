@@ -13,9 +13,9 @@ import keydoLogo from "../assets/keydo_logo_dark.svg";
 export function NavBar() {
   return (
     <div className="flex justify-between w-screen p-2 pr-3">
-      <a href="https://react.dev" target="_blank">
-        <img src={keydoLogo} className="w-12 h-12" alt="React logo" />
-      </a>
+      <Link to="/">
+        <img src={keydoLogo} className="w-12 h-12" alt="Keydo logo" />
+      </Link>
       <NavigationMenu className="">
         <NavigationMenuList className="gap-2">
           <NavigationMenuItem>

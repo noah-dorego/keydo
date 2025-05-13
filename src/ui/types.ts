@@ -40,11 +40,9 @@ export enum Key {
   PercentSign = "%",
   Six = "6",
   Caret = "^",
-  Hat = "^",
   Seven = "7",
   Ampersand = "&",
   Eight = "8",
-  Star = "*",
   Asterisk = "*",
   Nine = "9",
   OpenParen = "(",
@@ -101,24 +99,6 @@ export enum Key {
   Y = "Y",
   Z = "Z",
   Meta = "Meta",
-  LeftWindowKey = "Meta",
-  RightWindowKey = "Meta",
-  Numpad0 = "0",
-  Numpad1 = "1",
-  Numpad2 = "2",
-  Numpad3 = "3",
-  Numpad4 = "4",
-  Numpad5 = "5",
-  Numpad6 = "6",
-  Numpad7 = "7",
-  Numpad8 = "8",
-  Numpad9 = "9",
-  Multiply = "*",
-  Add = "+",
-  Subtract = "-",
-  DecimalPoint = ".",
-  MSDecimalPoint = "Decimal",
-  Divide = "/",
   F1 = "F1",
   F2 = "F2",
   F3 = "F3",
@@ -148,7 +128,12 @@ export enum Key {
   Quote = "'",
 }
 
+export type ActionParams = string | number | boolean | object;
+
 export type ShortcutProps = {
-  command: Key[];
-  action: string;
+  id: string;
+  name: string;
+  accelerator: string;
+  actionType: string;
+  actionDetails: Record<string, ActionParams>;
 };
