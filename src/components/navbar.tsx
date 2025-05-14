@@ -10,7 +10,11 @@ import { FaPlus } from "react-icons/fa";
 
 import keydoLogo from "../assets/keydo_logo_dark.svg";
 
-export function NavBar() {
+interface NavBarProps {
+  openAddShortcutModal: () => void;
+}
+
+export function NavBar({ openAddShortcutModal }: NavBarProps) {
   return (
     <div className="flex justify-between w-screen p-2 pr-3">
       <Link to="/">
@@ -19,7 +23,11 @@ export function NavBar() {
       <NavigationMenu className="">
         <NavigationMenuList className="gap-2">
           <NavigationMenuItem>
-            <div className="rounded-full bg-black w-8 h-8 flex justify-center items-center">
+            <div 
+              className="rounded-full bg-black w-8 h-8 flex justify-center items-center cursor-pointer"
+              onClick={openAddShortcutModal}
+              title="Add new shortcut"
+            >
               <FaPlus size={16} color="white" />
             </div>
           </NavigationMenuItem>

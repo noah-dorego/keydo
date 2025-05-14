@@ -2,6 +2,7 @@ import path from "path";
 import { app, globalShortcut } from "electron";
 import fs from "fs";
 import { SHORTCUT_LIST_PATH } from "./constants.js";
+import { ShortcutProps } from "./types.js";
 
 export function isDev(): boolean {
   return process.env.NODE_ENV === "development";
@@ -45,6 +46,6 @@ export function getShortcutList() {
   }
 }
 
-export function saveShortcut(data: object /* add type */) {
+export function saveShortcut(data: ShortcutProps) {
   fs.writeFileSync(SHORTCUT_LIST_PATH, JSON.stringify(data));
 }
