@@ -2,7 +2,7 @@ import { FaPlus } from "react-icons/fa6";
 import { Button } from "./ui/button.tsx";
 import { ShortcutRow } from "./shortcut-row.tsx";
 
-import { Key } from "../ui/types.ts";
+import { Key } from "../frontend/types.ts";
 import { useEffect, useState } from "react";
 
 interface ShortcutListProps {

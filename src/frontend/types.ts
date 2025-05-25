@@ -3,9 +3,9 @@ export enum Key {
   Tab = "Tab",
   Enter = "Enter",
   Shift = "Shift",
-  Control = "Control",
-  Command = "Command",
-  CommandOrControl = "CommandOrControl",
+  Ctrl = "Ctrl",
+  Cmd = "Cmd",
+  CmdOrCtrl = "CmdOrCtrl",
   Alt = "Alt",
   CapsLock = "CapsLock",
   Escape = "Escape",
@@ -136,4 +136,15 @@ export type ShortcutProps = {
   accelerator: string;
   actionType: string;
   actionDetails: Record<string, ActionParams>;
+};
+
+// Moved keyMap here
+export const keyMap: { [key: string]: Key } = {
+  'Control': Key.Ctrl, 'Shift': Key.Shift, 'Alt': Key.Alt, 'Meta': Key.Meta, // Modifiers
+  'a': Key.a, 'b': Key.b, 'c': Key.c, 'd': Key.d, 'e': Key.e, 'f': Key.f, 'g': Key.g, 'h': Key.h, 'i': Key.i, 'j': Key.j, 'k': Key.k, 'l': Key.l, 'm': Key.m, 'n': Key.n, 'o': Key.o, 'p': Key.p, 'q': Key.q, 'r': Key.r, 's': Key.s, 't': Key.t, 'u': Key.u, 'v': Key.v, 'w': Key.w, 'x': Key.x, 'y': Key.y, 'z': Key.z,
+  'A': Key.A, 'B': Key.B, 'C': Key.C, 'D': Key.D, 'E': Key.E, 'F': Key.F, 'G': Key.G, 'H': Key.H, 'I': Key.I, 'J': Key.J, 'K': Key.K, 'L': Key.L, 'M': Key.M, 'N': Key.N, 'O': Key.O, 'P': Key.P, 'Q': Key.Q, 'R': Key.R, 'S': Key.S, 'T': Key.T, 'U': Key.U, 'V': Key.V, 'W': Key.W, 'X': Key.X, 'Y': Key.Y, 'Z': Key.Z,
+  '0': Key.Zero, '1': Key.One, '2': Key.Two, '3': Key.Three, '4': Key.Four, '5': Key.Five, '6': Key.Six, '7': Key.Seven, '8': Key.Eight, '9': Key.Nine,
+  'Enter': Key.Enter, 'Escape': Key.Escape, ' ': Key.Space, 'Tab': Key.Tab,
+  'ArrowUp': Key.ArrowUp, 'ArrowDown': Key.ArrowDown, 'ArrowLeft': Key.ArrowLeft, 'ArrowRight': Key.ArrowRight,
+  // Add more mappings for F-keys, symbols, etc. as needed based on your Key enum
 };
