@@ -11,8 +11,8 @@ import { ShortcutProps } from "./types.ts";
 declare global {
   interface Window {
     electron: {
-      getShortcuts: () => Promise<any>;
-      addShortcut: (data: ShortcutProps) => Promise<any>;
+      getShortcutList: () => Promise<Record<string, ShortcutProps> | null>;
+      addShortcut: (data: ShortcutProps) => Promise<{ success: boolean, message: string }>;
     };
   }
 }

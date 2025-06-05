@@ -4,7 +4,7 @@ import {
   NavigationMenuList,
 } from "./ui/navigation-menu.tsx";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaGear } from "react-icons/fa6";
 import { FaPlus } from "react-icons/fa";
 
@@ -15,6 +15,8 @@ interface NavBarProps {
 }
 
 export function NavBar({ openAddShortcutModal }: NavBarProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="flex justify-between w-screen p-2 pr-3">
       <Link to="/">
@@ -23,20 +25,25 @@ export function NavBar({ openAddShortcutModal }: NavBarProps) {
       <NavigationMenu className="">
         <NavigationMenuList className="gap-2">
           <NavigationMenuItem>
-            <div 
+            <button
+              type="button"
               className="rounded-full bg-black w-8 h-8 flex justify-center items-center cursor-pointer"
               onClick={openAddShortcutModal}
               title="Add new shortcut"
+              aria-label="Add new shortcut"
             >
               <FaPlus size={16} color="white" />
-            </div>
+            </button>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link to="/settings" title="Settings">
-              <div className="rounded-full bg-black w-8 h-8 flex justify-center items-center">
-                <FaGear size={16} color="white" />
-              </div>
-            </Link>
+            <button 
+              className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
+              title="Settings"
+              aria-label="Settings"
+              onClick={() => navigate('/settings')}
+            >
+              <FaGear size={16} color="white" />
+            </button>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>

@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { KeyIcon } from '@/components/key-icon.tsx';
 import { Key, keyMap } from '@/frontend/types.ts';
 import { Button } from '@/components/ui/button.tsx';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaTrash } from 'react-icons/fa';
+import { KeySlot } from '@/components/KeySlot.tsx'; // Import the new KeySlot component
 
 export interface ShortcutKey {
   modifier?: (Key | null)[]; // Allow null for placeholder modifiers
   key: Key | null;
 }
 
-interface ShortcutSetterProps {
+interface ShortcutInputProps {
   shortcut: ShortcutKey | null;
   setShortcut: (shortcut: ShortcutKey | null) => void;
 }
 
-export function ShortcutSetter({ shortcut, setShortcut }: ShortcutSetterProps) {
+export function ShortcutInput({ shortcut, setShortcut }: ShortcutInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [listeningKeyIndex, setListeningKeyIndex] = useState<number | 'main' | null>(null);
 
@@ -40,6 +40,22 @@ export function ShortcutSetter({ shortcut, setShortcut }: ShortcutSetterProps) {
     } else if (!shortcut?.key) {
       alert("Please set the main key first or click an empty slot.");
     }
+  };
+
+  const handleRemoveModifier = () => {
+    if (!isListening || typeof listeningKeyIndex !== 'number' || !shortcut?.modifier) return;
+    
+    const currentModifiers = shortcut.modifier;
+    const newModifiers = currentModifiers.filter((_, index) => index !== listeningKeyIndex);
+    
+    const newShortcut = {
+      ...shortcut,
+      modifier: newModifiers.length > 0 ? newModifiers : []
+    };
+    
+    setShortcut(newShortcut);
+    setIsListening(false);
+    setListeningKeyIndex(null);
   };
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -104,32 +120,14 @@ export function ShortcutSetter({ shortcut, setShortcut }: ShortcutSetterProps) {
     };
   }, [isListening, handleKeyDown]);
 
-  const renderKeySlot = (keyVal: Key | null, index: number | 'main', isModifier: boolean) => {
-    const displayContent = keyVal ? (
-      <KeyIcon>{keyVal}</KeyIcon>
-    ) : (
-      <span className="text-xs text-gray-400">SET</span>
-    );
-    
-    const isCurrentlyListening = isListening && listeningKeyIndex === index;
-
-    return (
-      <div
-        key={typeof index === 'number' && isModifier ? `mod-${index}` : 'main-key'}
-        onClick={() => handleKeyElementClick(index)}
-        className={`p-2 border rounded min-w-[40px] text-center cursor-pointer hover:bg-accent flex items-center justify-center 
-                    ${isCurrentlyListening ? 'ring-2 ring-primary bg-accent shadow-lg' : 'border-transparent'}
-                    ${!keyVal ? 'border-dashed border-gray-400' : ''}`}
-        title={keyVal ? `Click to change ${keyVal}` : 'Click to set key'}
-      >
-        {isCurrentlyListening ? <span className="text-xs text-primary animate-pulse">LISTENING</span> : displayContent}
-      </div>
-    );
-  };
-  
   const currentModifiers = shortcut?.modifier || [];
   const mainKey = shortcut?.key || null;
   const maxModifiers = 4;
+
+  // Determine if Remove Modifier button should be enabled
+  const canRemoveModifier = isListening && 
+                           typeof listeningKeyIndex === 'number' && 
+                           currentModifiers.filter(m => m !== null).length > 1;
 
   // Changed let to const for displayModifiers as it's not reassigned directly
   const initialDisplayModifiers = [...currentModifiers];
@@ -147,15 +145,18 @@ export function ShortcutSetter({ shortcut, setShortcut }: ShortcutSetterProps) {
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-2">Define Shortcut Combination</h3>
+      <h4 className="text-sm font-medium mb-2">Set Shortcut Combination</h4>
       <div className="flex items-center flex-wrap gap-1 p-2 bg-muted rounded-md min-h-[50px]">
         {displayModifiers.map((modKey, index) => (
           modKey !== null || (isListening && listeningKeyIndex === index) ? (
             <React.Fragment key={`mod-frag-${index}`}>
-              {renderKeySlot(modKey, index, true)}
+              <KeySlot 
+                keyVal={modKey} 
+                isListening={isListening && listeningKeyIndex === index}
+                onClick={() => handleKeyElementClick(index)}
+              />
               {/* Add plus sign if not the last rendered modifier OR if there's a main key following this modifier slot*/}
               { (index < displayModifiers.filter(m => m !== null || (isListening && listeningKeyIndex === index)).length - 1 || mainKey || (isListening && listeningKeyIndex === 'main')) && 
-                displayModifiers[index+1] !== null && /* Don't add + if next is a placeholder we are not focused on */ 
                 (mainKey || displayModifiers.filter(m => m !== null).length > index +1 ) && /* Add + if a main key exists or another actual modifier follows */ 
                 <span className="mx-1 self-center">+</span>
               }
@@ -165,29 +166,41 @@ export function ShortcutSetter({ shortcut, setShortcut }: ShortcutSetterProps) {
         
         {/* Placeholder for the first modifier if no modifiers and no main key yet, but we are not listening for the main key */}
         {!mainKey && displayModifiers.filter(m => m !== null).length === 0 && (!isListening || listeningKeyIndex !== 'main') && (
-            renderKeySlot(null, 0, true)
+            <KeySlot 
+                keyVal={null} 
+                isListening={isListening && listeningKeyIndex === 0} // Assuming 0 for first potential modifier
+                onClick={() => handleKeyElementClick(0)} 
+            />
         )}
-        {/* Plus sign before main key if there are any non-null modifiers and a main key slot is next */}
-        {displayModifiers.filter(m => m !== null).length > 0 && 
-         (mainKey || (isListening && listeningKeyIndex === 'main')) && 
-         <span className="mx-1 self-center">+</span>
-        }
-
         {/* Main Key Slot */}
-        {renderKeySlot(mainKey, 'main', false)}
+        <KeySlot 
+            keyVal={mainKey} 
+            isListening={isListening && listeningKeyIndex === 'main'}
+            onClick={() => handleKeyElementClick('main')}
+        />
         
         {!mainKey && displayModifiers.filter(m => m !== null).length === 0 && !isListening && (
              <span className="text-muted-foreground text-sm p-1 ml-2">Click a slot to set a key.</span>
         )}
       </div>
-      <div className="mt-3">
+      <div className="mt-3 gap-2 flex flex-row">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={handleAddModifier} 
-          disabled={isListening || (mainKey && currentModifiers.filter(m => m !== null).length >= maxModifiers) || !mainKey} 
+          disabled={isListening || (mainKey && currentModifiers.filter(m => m !== null).length >= maxModifiers) || !mainKey}
+          className="align-middle"
           title={!mainKey ? "Set main key first" : (currentModifiers.filter(m => m !== null).length >= maxModifiers ? "Max modifiers reached" : "Add modifier") }>
-          <FaPlus className="mr-2 h-4 w-4" /> Add Modifier
+          <FaPlus className="h-4 w-4" /> Add Modifier
+        </Button>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={handleRemoveModifier} 
+          disabled={!canRemoveModifier}
+          className="align-middle"
+          title={!canRemoveModifier ? "Select a modifier to remove (must have multiple modifiers)" : "Remove selected modifier"}>
+          <FaTrash className="h-4 w-4" /> Remove Modifier
         </Button>
       </div>
     </div>
