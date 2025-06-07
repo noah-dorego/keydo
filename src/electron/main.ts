@@ -126,6 +126,36 @@ app.whenReady().then(() => {
   ipcMain.handle("get-shortcuts", () => {
     return shortcutList;
   });
+
+  ipcMain.handle("delete-shortcut", (event, shortcutId) => {
+    if (!shortcutId || !shortcutList[shortcutId]) {
+      console.error("Invalid shortcut ID for deletion:", shortcutId);
+      return { success: false, message: "Invalid shortcut ID." };
+    }
+
+    const shortcutToDelete = shortcutList[shortcutId];
+    
+    // Unregister from Electron
+    globalShortcut.unregister(shortcutToDelete.accelerator);
+
+    // Remove from in-memory list
+    delete shortcutList[shortcutId];
+
+    // Persist the updated list
+    try {
+      fs.writeFileSync(constants.SHORTCUT_LIST_PATH, JSON.stringify(shortcutList, null, 2));
+      console.log(`Shortcut ${shortcutToDelete.name} deleted and list saved.`);
+    } catch (error) {
+      console.error("Failed to save shortcut list after deletion:", error);
+      // If saving fails, you might want to rollback the in-memory deletion
+      // For simplicity here, we'll just log the error.
+      shortcutList[shortcutId] = shortcutToDelete; // Rollback
+      globalShortcut.register(shortcutToDelete.accelerator, () => {}); // Re-register (action is lost)
+      return { success: false, message: "Failed to update shortcut file." };
+    }
+
+    return { success: true, message: "Shortcut deleted successfully." };
+  });
 });
 
 // Do not quit when windows are closed, continue listening for shortcuts

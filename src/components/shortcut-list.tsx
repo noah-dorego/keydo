@@ -36,25 +36,29 @@ const parseAcceleratorToKeys = (accelerator: string): Key[] => {
 export function ShortcutList({ openAddShortcutModal }: ShortcutListProps) {
   const [shortcuts, setShortcuts] = useState<ShortcutProps[]>([]);
 
-  useEffect(() => {
-    async function fetchShortcuts() {
-      try {
-        const shortcutListObj = await window.electron.getShortcutList();
-        if (shortcutListObj && typeof shortcutListObj === 'object') {
-          // Cast the values to ShortcutProps[] to satisfy TypeScript
-          const shortcutsArray = Object.values(shortcutListObj) as ShortcutProps[];
-          setShortcuts(shortcutsArray);
-        } else {
-          console.error("Received invalid shortcuts data:", shortcutListObj);
-          setShortcuts([]); // Set to empty if data is invalid
-        }
-      } catch (error) {
-        console.error("Error fetching shortcuts:", error);
-        setShortcuts([]); // Set to empty on error
+  const fetchShortcuts = async () => {
+    try {
+      const shortcutListObj = await window.electron.getShortcutList();
+      if (shortcutListObj && typeof shortcutListObj === 'object') {
+        const shortcutsArray = Object.values(shortcutListObj) as ShortcutProps[];
+        setShortcuts(shortcutsArray);
+      } else {
+        console.error("Received invalid shortcuts data:", shortcutListObj);
+        setShortcuts([]);
       }
+    } catch (error) {
+      console.error("Error fetching shortcuts:", error);
+      setShortcuts([]);
     }
+  };
+
+  useEffect(() => {
     fetchShortcuts();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []); 
+
+  const handleShortcutDeleted = () => {
+    fetchShortcuts();
+  };
 
   const addNewShortcut = () => {
     openAddShortcutModal();
@@ -67,10 +71,12 @@ export function ShortcutList({ openAddShortcutModal }: ShortcutListProps) {
         <p className="text-center text-gray-500">No shortcuts configured yet. Click "New" to add one!</p>
       )}
       {shortcuts.map((shortcut) => (
-        <ShortcutRow 
-          key={shortcut.id} 
-          keys={parseAcceleratorToKeys(shortcut.accelerator)} 
+        <ShortcutRow
+          key={shortcut.id}
+          id={shortcut.id}
+          keys={parseAcceleratorToKeys(shortcut.accelerator)}
           action={shortcut.name}
+          onDelete={handleShortcutDeleted}
         />
       ))}
       <Button

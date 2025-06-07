@@ -13,6 +13,7 @@ declare global {
     electron: {
       getShortcutList: () => Promise<Record<string, ShortcutProps> | null>;
       addShortcut: (data: ShortcutProps) => Promise<{ success: boolean, message: string }>;
+      deleteShortcut: (shortcutId: string) => Promise<{ success: boolean, message: string }>;
     };
   }
 }
