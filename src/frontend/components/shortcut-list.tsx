@@ -1,12 +1,9 @@
 import { FaPlus } from "react-icons/fa6";
 import { Button } from "./ui/button.tsx";
 import { ShortcutRow } from "./shortcut-row.tsx";
-import { Key, ShortcutProps } from "../frontend/types.ts";
+import { Key, ShortcutProps } from "@/frontend/types.ts";
 import { useEffect, useState } from "react";
-
-interface ShortcutListProps {
-  openAddShortcutModal: () => void;
-}
+import { AddShortcutModal } from "./add-shortcut-modal.tsx";
 
 // Helper function to parse accelerator string to Key array
 // This is a simplified parser. Robust parsing might need to handle "CmdOrCtrl" or aliases.
@@ -33,8 +30,9 @@ const parseAcceleratorToKeys = (accelerator: string): Key[] => {
   }).filter(Boolean) as Key[]; // Filter out any undefined/null if mapping fails severely
 };
 
-export function ShortcutList({ openAddShortcutModal }: ShortcutListProps) {
+export function ShortcutList() {
   const [shortcuts, setShortcuts] = useState<ShortcutProps[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const fetchShortcuts = async () => {
     try {
@@ -60,15 +58,31 @@ export function ShortcutList({ openAddShortcutModal }: ShortcutListProps) {
     fetchShortcuts();
   };
 
-  const addNewShortcut = () => {
-    openAddShortcutModal();
+  const handleShortcutAdded = () => {
+    fetchShortcuts();
+    setIsAddModalOpen(false); // Close modal on successful add
+  };
+
+  const openAddShortcutModal = () => {
+    setIsAddModalOpen(true);
   };
 
   return (
     <div className="w-screen px-4">
       <hr className="h-2 mb-4 bg-black rounded-lg"></hr>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">Shortcuts</h1>
+        <button 
+              className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
+              title="Add New Shortcut"
+              aria-label="Add New Shortcut"
+              onClick={openAddShortcutModal}
+            >
+              <FaPlus size={16} color="white" />
+            </button>
+      </div>
       {shortcuts.length === 0 && (
-        <p className="text-center text-gray-500">No shortcuts configured yet. Click "New" to add one!</p>
+        <p className="text-center text-gray-500">No shortcuts configured yet. Click "New" to get started!</p>
       )}
       {shortcuts.map((shortcut) => (
         <ShortcutRow
@@ -81,10 +95,15 @@ export function ShortcutList({ openAddShortcutModal }: ShortcutListProps) {
       ))}
       <Button
         className="w-full border-dashed border-gray-500 border-2 bg-transparent text-gray-500 hover:border-none hover:bg-black hover:text-white mt-4"
-        onClick={addNewShortcut}
+        onClick={openAddShortcutModal}
       >
         <FaPlus /> New
       </Button>
+      <AddShortcutModal 
+        isOpen={isAddModalOpen} 
+        onOpenChange={setIsAddModalOpen}
+        onShortcutAdded={handleShortcutAdded}
+      />
     </div>
   );
 }

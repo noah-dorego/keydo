@@ -1,7 +1,7 @@
 import React from 'react';
-import { KeyIcon } from '@/components/key-icon.tsx';
+import { KeyIcon } from '@/frontend/components/key-icon.tsx';
 import { Key } from '@/frontend/types.ts';
-import { Card } from '@/components/ui/card.tsx'; // Assuming Card is in ui folder
+import { Card } from '@/frontend/components/ui/card.tsx'; // Assuming Card is in ui folder
 
 interface KeySlotProps {
   keyVal: Key | null;

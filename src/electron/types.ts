@@ -7,3 +7,10 @@ export type ShortcutProps = {
     actionType: string;
     actionDetails: Record<string, ActionParams>;
   };
+
+export enum ActionType {
+  Script = "script",
+  Text = "text",
+  File = "file",
+  Ai = "ai",
+} 

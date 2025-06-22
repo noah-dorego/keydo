@@ -3,6 +3,7 @@ import { app, globalShortcut } from "electron";
 import fs from "fs";
 import { SHORTCUT_LIST_PATH } from "./constants.js";
 import { ShortcutProps } from "./types.js";
+import { ActionExecutor } from "./actions.js";
 
 export function isDev(): boolean {
   return process.env.NODE_ENV === "development";
@@ -16,12 +17,22 @@ export function getPreloadPath() {
   );
 }
 
-export const registerShortcut = (accelerator: string, actionType: string) => {
+export const registerShortcut = (
+  accelerator: string,
+  actionType: string,
+  actionDetails: Record<string, any>
+) => {
   try {
-    globalShortcut.register(accelerator, () => console.log(actionType));
+    globalShortcut.register(accelerator, () => {
+      console.log(
+        `Shortcut triggered: ${accelerator}, Action: ${actionType}`
+      );
+      ActionExecutor.executeAction(actionType, actionDetails);
+    });
+    console.log(`Shortcut registered: ${accelerator}`);
     return true;
   } catch (error) {
-    console.log("Error registering shortcut", error);
+    console.log(`Error registering shortcut ${accelerator}:`, error);
     return false;
   }
 };
@@ -46,6 +57,6 @@ export function getShortcutList() {
   }
 }
 
-export function saveShortcut(data: ShortcutProps) {
-  fs.writeFileSync(SHORTCUT_LIST_PATH, JSON.stringify(data));
+export function saveShortcutList(list: Record<string, ShortcutProps>) {
+  fs.writeFileSync(SHORTCUT_LIST_PATH, JSON.stringify(list, null, 2));
 }

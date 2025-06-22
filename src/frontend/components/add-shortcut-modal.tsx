@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button.tsx';
-import { Input } from '@/components/ui/input.tsx';
+import { Button } from '@/frontend/components/ui/button.tsx';
+import { Input } from '@/frontend/components/ui/input.tsx';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog.tsx';
+} from '@/frontend/components/ui/dialog.tsx';
 import { FileText, Terminal, Lightbulb, FolderOpen, AlertTriangle } from 'lucide-react';
 import { Key } from '@/frontend/types.ts'; 
-import { ShortcutInput } from '@/components/shortcut-input.tsx';
+import { ShortcutInput } from '@/frontend/components/shortcut-input.tsx';
 
 interface ActionType {
   id: string;
@@ -28,6 +28,7 @@ const actionTypes: ActionType[] = [
 interface AddShortcutModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onShortcutAdded: () => void;
 }
 
 // Local ShortcutKey interface - ensure it matches the one in ShortcutInput if not importing
@@ -38,9 +39,9 @@ interface LocalShortcutKey {
   key: Key | null;
 }
 
-export function AddShortcutModal({ isOpen, onOpenChange }: AddShortcutModalProps) {
+export function AddShortcutModal({ isOpen, onOpenChange, onShortcutAdded }: AddShortcutModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedActionType, setSelectedActionType] = useState<string | null>(null);
+  const [selectedActionType, setSelectedActionType] = useState<string>("");
   const [scriptPath, setScriptPath] = useState('');
   const [shortcutName, setShortcutName] = useState('');
   // Ensure initial state matches the updated ShortcutKey allowing nulls
@@ -67,20 +68,36 @@ export function AddShortcutModal({ isOpen, onOpenChange }: AddShortcutModalProps
     if (currentStep < 3) { 
         setCurrentStep(currentStep + 1);
     } else {
+      let actionDetails = {};
+      switch (selectedActionType) {
+        case 'text':
+          break;
+        case 'file':
+          break;
+        case 'script':
+          actionDetails = {
+            scriptPath: scriptPath,
+          };
+          break;
+        case 'ai':
+          break;
+        default:
+          break;
+      }
         // User is on the final step (currentStep === 3)
         const shortcutData = {
           id: Date.now().toString(), // Generate a unique ID
           name: shortcutName,
           accelerator: "Ctrl+Alt+P", // Placeholder accelerator
-          actionType: "run_script",
-          actionDetails: {
-            filePath: scriptPath,
-          },
+          actionType: selectedActionType,
+          actionDetails: actionDetails,
         };
         
         // Assuming window.electron.addShortcut is exposed via preload script
         if (window.electron && typeof window.electron.addShortcut === 'function') {
-          window.electron.addShortcut(shortcutData);
+          window.electron.addShortcut(shortcutData).then(() => {
+            onShortcutAdded();
+          });
         } else {
           console.error('addShortcut function not found on window.electron. Ensure it is exposed via preload script.');
           // Fallback or error handling
@@ -98,7 +115,7 @@ export function AddShortcutModal({ isOpen, onOpenChange }: AddShortcutModalProps
   };
 
   const handleCancel = () => {
-    setSelectedActionType(null);
+    setSelectedActionType("");
     setCurrentStep(1);
     setScriptPath('');
     setShortcutName('');
@@ -123,8 +140,9 @@ export function AddShortcutModal({ isOpen, onOpenChange }: AddShortcutModalProps
                 id="scriptPath" 
                 value={scriptPath}
                 onChange={(e) => setScriptPath(e.target.value)}
-                placeholder="Absolute path (/path/to/your/script or C:\path\to\your\script)"
+                placeholder="Enter absolute path (/path/to/your/script or C:\path\to\your\script)"
               />
+            <h6 className="my-1 text-xs text-muted-foreground">Accepted file types: .exe, .bat, .sh, .py, .js, .ts</h6>
           </>
         )
       default:
@@ -184,9 +202,8 @@ export function AddShortcutModal({ isOpen, onOpenChange }: AddShortcutModalProps
 
         {currentStep === 3 && (
           <div>
-            <h3 className="text-md font-medium mb-2">Configure Shortcut</h3>
             <div className='mb-4'>
-              <h4 className="text-sm font-medium">Enter Shortcut Name</h4>
+              <h4 className="text-sm font-medium mb-2">Enter Shortcut Name</h4>
               <Input 
                 type="text" 
                 id="shortcutName" 

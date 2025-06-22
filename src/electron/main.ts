@@ -4,21 +4,11 @@ import fs from "fs";
 
 import * as utils from "./utils.js";
 import * as constants from "./constants.js";
+import { ShortcutProps } from "./types.js";
 
 let mainWindow: BrowserWindow | null;
 
-interface ShortcutData {
-  id: string;
-  name: string;
-  accelerator: string;
-  actionType: string;
-  actionDetails: {
-    filePath?: string;
-    [key: string]: unknown; 
-  };
-}
-
-let shortcutList: { [key: string]: ShortcutData } = {};
+let shortcutList: Record<string, ShortcutProps> = {};
 
 const createWindow = () => {
   // Create the browser window.
@@ -26,6 +16,8 @@ const createWindow = () => {
     webPreferences: {
       preload: utils.getPreloadPath(),
     },
+    minWidth: 500,
+    minHeight: 600,
   });
 
   // Load from hosted port in dev mode, and from build in prod
@@ -53,9 +45,19 @@ app.whenReady().then(() => {
   // Get list of shortvuts from file (if exists)
   if (fs.existsSync(constants.SHORTCUT_LIST_PATH)) {
     try {
-      shortcutList = JSON.parse(
-        fs.readFileSync(constants.SHORTCUT_LIST_PATH, "utf-8")
-      );
+      const rawData = fs.readFileSync(constants.SHORTCUT_LIST_PATH, "utf-8");
+      shortcutList = JSON.parse(rawData);
+      // Re-register all shortcuts from the list on startup.
+      for (const id in shortcutList) {
+        const shortcut = shortcutList[id];
+        if (shortcut) {
+          utils.registerShortcut(
+            shortcut.accelerator,
+            shortcut.actionType,
+            shortcut.actionDetails
+          );
+        }
+      }
     } catch (error) {
       console.log("unable to read file: ", error);
     }
@@ -70,8 +72,6 @@ app.whenReady().then(() => {
     }
   });
 
-  utils.registerShortcut("Alt+A", "testName");
-
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -79,48 +79,29 @@ app.whenReady().then(() => {
   });
 
   // Define IPC event handlers
-  ipcMain.handle("add-shortcut", (event, data) => {
-    console.log("Received shortcut data in main process: ", data);
-
-    // Ensure data and data.id exist
-    if (!data || !data.id) {
-      console.error("Invalid shortcut data received.", data);
-      return { success: false, message: "Invalid shortcut data." };
+  ipcMain.handle("add-shortcut", (event, data: ShortcutProps) => {
+    console.log("adding shortcut: ", data);
+    if (globalShortcut.isRegistered(data.accelerator)) {
+      const message = `Shortcut ${data.accelerator} is already registered.`;
+      console.log(message);
+      return { success: false, message };
     }
 
-    // Add/update the shortcut in our in-memory list
-    shortcutList[data.id] = data;
+    const success = utils.registerShortcut(
+      data.accelerator,
+      data.actionType,
+      data.actionDetails
+    );
 
-    // Persist the updated shortcut list to the file
-    try {
-      fs.writeFileSync(constants.SHORTCUT_LIST_PATH, JSON.stringify(shortcutList, null, 2));
-      console.log("Shortcut list saved to file.");
-    } catch (error) {
-      console.error("Failed to save shortcut list to file:", error);
-      // Optionally, return an error or decide if the in-memory registration should still proceed
-      return { success: false, message: "Failed to save shortcut to file." };
+    if (success) {
+      shortcutList[data.id] = data;
+      utils.saveShortcutList(shortcutList);
+      return { success: true, message: "Shortcut registered successfully" };
+    } else {
+      const message = `Failed to register shortcut: ${data.accelerator}. It might be an invalid combination.`;
+      console.log(message);
+      return { success: false, message };
     }
-
-    // Register the shortcut for the current session
-    // For now, the action will just be a console log
-    const isRegistered = globalShortcut.register(data.accelerator, () => {
-      console.log(`Shortcut ${data.accelerator} triggered! Action: ${data.actionType}, Details: ${JSON.stringify(data.actionDetails)}`);
-      // Later, this will call a function to execute the script or perform the defined action
-      if (data.actionType === "run_script" && data.actionDetails && data.actionDetails.filePath) {
-        console.log(`Would execute script: ${data.actionDetails.filePath}`);
-        // Placeholder for actual script execution logic
-        // For example: utils.executeScript(data.actionDetails.filePath);
-      }
-    });
-
-    if (!isRegistered) {
-      console.error(`Failed to register shortcut: ${data.accelerator}`);
-      // Optionally, remove from shortcutList and file if registration fails, or inform the user.
-      return { success: false, message: `Failed to register shortcut: ${data.accelerator}. It might be already in use by another application.` };
-    }
-
-    console.log(`Shortcut ${data.accelerator} registered successfully.`);
-    return { success: true, message: "Shortcut added and registered successfully." };
   });
 
   ipcMain.handle("get-shortcuts", () => {

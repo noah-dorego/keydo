@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Key, keyMap } from '@/frontend/types.ts';
-import { Button } from '@/components/ui/button.tsx';
+import { Button } from '@/frontend/components/ui/button.tsx';
 import { FaPlus, FaTrash } from 'react-icons/fa';
-import { KeySlot } from '@/components/KeySlot.tsx'; // Import the new KeySlot component
+import { KeySlot } from '@/frontend/components/KeySlot.tsx'; // Import the new KeySlot component
 
 export interface ShortcutKey {
   modifier?: (Key | null)[]; // Allow null for placeholder modifiers

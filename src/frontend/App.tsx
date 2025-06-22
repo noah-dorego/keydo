@@ -1,11 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
-import { NavBar } from "../components/navbar.tsx";
-import { ShortcutList } from "@/components/shortcut-list.tsx";
-import { SettingsPage } from "../pages/settings_page.tsx";
-import { AddShortcutModal } from "@/components/add-shortcut-modal.tsx";
+import { NavBar } from "@/frontend/components/navbar.tsx";
+import { ShortcutList } from "@/frontend/components/shortcut-list.tsx";
+import { SettingsPage } from "@/frontend/pages/settings_page.tsx";
 
-import { ShortcutProps } from "./types.ts";
+import { ShortcutProps } from "@/frontend/types.ts";
 
 // adding type for IPC event handlers
 declare global {
@@ -19,23 +17,13 @@ declare global {
 }
 
 function App() {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const handleOpenAddShortcutModal = () => {
-    setIsAddModalOpen(true);
-  };
-
   return (
     <BrowserRouter>
-      <NavBar openAddShortcutModal={handleOpenAddShortcutModal} />
+      <NavBar />
       <Routes>
-        <Route path="/" element={<ShortcutList openAddShortcutModal={handleOpenAddShortcutModal} />} />
+        <Route path="/" element={<ShortcutList />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
-      <AddShortcutModal 
-        isOpen={isAddModalOpen} 
-        onOpenChange={setIsAddModalOpen} 
-      />
     </BrowserRouter>
   );
 }

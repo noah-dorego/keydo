@@ -1,12 +1,12 @@
 import React from 'react';
-import { Button, buttonVariants } from '@/components/ui/button.tsx';
+import { Button, buttonVariants } from '@/frontend/components/ui/button.tsx';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog.tsx';
+} from '@/frontend/components/ui/dialog.tsx';
 import { VariantProps } from 'class-variance-authority';
 
 interface ConfirmModalProps {
