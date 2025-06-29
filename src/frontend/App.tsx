@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router";
 import { NavBar } from "@/frontend/components/navbar.tsx";
 import { ShortcutList } from "@/frontend/components/shortcut-list.tsx";
 import { SettingsPage } from "@/frontend/pages/settings_page.tsx";
@@ -18,13 +18,13 @@ declare global {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <NavBar />
       <Routes>
         <Route path="/" element={<ShortcutList />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

@@ -4,7 +4,7 @@ import {
   NavigationMenuList,
 } from "./ui/navigation-menu.tsx";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { FaGear } from "react-icons/fa6";
 
 import keydoLogo from "../assets/keydo_logo_dark.svg";
