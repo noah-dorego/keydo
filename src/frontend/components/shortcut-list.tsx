@@ -9,25 +9,29 @@ import { AddShortcutModal } from "./add-shortcut-modal.tsx";
 // This is a simplified parser. Robust parsing might need to handle "CmdOrCtrl" or aliases.
 const parseAcceleratorToKeys = (accelerator: string): Key[] => {
   if (!accelerator) return [];
-  return accelerator.split('+').map(part => {
-    // Attempt to map known parts directly from Key enum values
-    // This assumes accelerator parts match Key enum string values (e.g., "Ctrl", "P")
-    const keyEnum = Key[part as keyof typeof Key];
-    if (keyEnum) {
-      return keyEnum;
-    }
-    // Fallback for single characters or unmapped keys - assumes Key enum includes them
-    // e.g. if part is "P", Key.P should exist.
-    // This might need refinement based on how Key enum is structured for non-modifier keys.
-    if (part.length === 1 && Key[part.toUpperCase() as keyof typeof Key]) {
-      return Key[part.toUpperCase() as keyof typeof Key]; // Try uppercase for letters
-    }
-    if (Key[part as keyof typeof Key]) { // Try direct match again for symbols etc.
+  return accelerator
+    .split("+")
+    .map((part) => {
+      // Attempt to map known parts directly from Key enum values
+      // This assumes accelerator parts match Key enum string values (e.g., "Ctrl", "P")
+      const keyEnum = Key[part as keyof typeof Key];
+      if (keyEnum) {
+        return keyEnum;
+      }
+      // Fallback for single characters or unmapped keys - assumes Key enum includes them
+      // e.g. if part is "P", Key.P should exist.
+      // This might need refinement based on how Key enum is structured for non-modifier keys.
+      if (part.length === 1 && Key[part.toUpperCase() as keyof typeof Key]) {
+        return Key[part.toUpperCase() as keyof typeof Key]; // Try uppercase for letters
+      }
+      if (Key[part as keyof typeof Key]) {
+        // Try direct match again for symbols etc.
         return Key[part as keyof typeof Key];
-    }
-    console.warn(`Unmapped key part in accelerator: ${part}`);
-    return part as Key; // Treat as Key if unmappable - might cause issues if not a valid Key enum
-  }).filter(Boolean) as Key[]; // Filter out any undefined/null if mapping fails severely
+      }
+      console.warn(`Unmapped key part in accelerator: ${part}`);
+      return part as Key; // Treat as Key if unmappable - might cause issues if not a valid Key enum
+    })
+    .filter(Boolean) as Key[]; // Filter out any undefined/null if mapping fails severely
 };
 
 export function ShortcutList() {
@@ -37,8 +41,10 @@ export function ShortcutList() {
   const fetchShortcuts = async () => {
     try {
       const shortcutListObj = await window.electron.getShortcutList();
-      if (shortcutListObj && typeof shortcutListObj === 'object') {
-        const shortcutsArray = Object.values(shortcutListObj) as ShortcutProps[];
+      if (shortcutListObj && typeof shortcutListObj === "object") {
+        const shortcutsArray = Object.values(
+          shortcutListObj
+        ) as ShortcutProps[];
         setShortcuts(shortcutsArray);
       } else {
         console.error("Received invalid shortcuts data:", shortcutListObj);
@@ -52,7 +58,7 @@ export function ShortcutList() {
 
   useEffect(() => {
     fetchShortcuts();
-  }, []); 
+  }, []);
 
   const handleShortcutDeleted = () => {
     fetchShortcuts();
@@ -72,17 +78,19 @@ export function ShortcutList() {
       <hr className="h-2 mb-4 bg-black rounded-lg"></hr>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">Shortcuts</h1>
-        <button 
-              className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
-              title="Add New Shortcut"
-              aria-label="Add New Shortcut"
-              onClick={openAddShortcutModal}
-            >
-              <FaPlus size={16} color="white" />
-            </button>
+        <button
+          className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
+          title="Add New Shortcut"
+          aria-label="Add New Shortcut"
+          onClick={openAddShortcutModal}
+        >
+          <FaPlus size={16} color="white" />
+        </button>
       </div>
       {shortcuts.length === 0 && (
-        <p className="text-center text-gray-500">No shortcuts configured yet. Click "New" to get started!</p>
+        <p className="text-center text-gray-500">
+          No shortcuts configured yet. Click "New" to get started!
+        </p>
       )}
       {shortcuts.map((shortcut) => (
         <ShortcutRow
@@ -99,8 +107,8 @@ export function ShortcutList() {
       >
         <FaPlus /> New
       </Button>
-      <AddShortcutModal 
-        isOpen={isAddModalOpen} 
+      <AddShortcutModal
+        isOpen={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         onShortcutAdded={handleShortcutAdded}
       />
