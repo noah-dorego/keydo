@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/frontend/components/ui/dialog.tsx';
-import { Card, CardContent} from '@/frontend/components/ui/card.tsx';
+import { Card} from '@/frontend/components/ui/card.tsx';
 import { FileText, Terminal, Lightbulb, FolderOpen, AlertTriangle, Hash, Type, Parentheses, Clipboard } from 'lucide-react';
 import { Key } from '@/frontend/types.ts'; 
 import { ShortcutInput } from '@/frontend/components/shortcut-input.tsx';
@@ -34,8 +34,8 @@ const actionTypes: ActionType[] = [
 
 const textManipulationTypes: TextManipulationType[] = [
   { id: 'wordCount', name: 'Word Count', icon: Hash },
-  { id: 'changeCase', name: 'Change Case', icon: Type },
-  { id: 'wrapText', name: 'Wrap Text', icon: Parentheses },
+  { id: 'upperCase', name: 'Upper Case', icon: Type },
+  { id: 'titleCase', name: 'Title Case', icon: Type },
   { id: 'pasteText', name: 'Paste Text', icon: Clipboard },
 ];
 
@@ -59,10 +59,7 @@ export function AddShortcutModal({ isOpen, onOpenChange, onShortcutAdded }: AddS
   const [selectedTextManipulationType, setSelectedTextManipulationType] = useState<string>("");
   const [scriptPath, setScriptPath] = useState('');
   const [shortcutName, setShortcutName] = useState('');
-  // Ensure initial state matches the updated ShortcutKey allowing nulls
-  const [definedShortcut, setDefinedShortcut] = useState<LocalShortcutKey | null>(
-    { modifier: [Key.Ctrl, Key.Shift], key: Key.P } 
-  );
+  const [definedShortcut, setDefinedShortcut] = useState<LocalShortcutKey | null>({ modifier: [Key.Ctrl, Key.Shift], key: Key.P });
 
   const handleActionTypeSelect = (actionTypeId: string) => {
     setSelectedActionType(actionTypeId);
@@ -87,9 +84,13 @@ export function AddShortcutModal({ isOpen, onOpenChange, onShortcutAdded }: AddS
     if (currentStep < 3) { 
         setCurrentStep(currentStep + 1);
     } else {
+      const shortcutString = definedShortcut ? definedShortcut.modifier?.join('+') + '+' + definedShortcut.key : '';
       let actionDetails = {};
       switch (selectedActionType) {
         case 'text':
+          actionDetails = {
+            actionType: selectedTextManipulationType,
+          };
           break;
         case 'file':
           break;
@@ -107,7 +108,7 @@ export function AddShortcutModal({ isOpen, onOpenChange, onShortcutAdded }: AddS
         const shortcutData = {
           id: Date.now().toString(), // Generate a unique ID
           name: shortcutName,
-          accelerator: "Ctrl+Alt+P", // Placeholder accelerator
+          accelerator: shortcutString, // Placeholder accelerator
           actionType: selectedActionType,
           actionDetails: actionDetails,
         };

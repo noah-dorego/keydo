@@ -36,17 +36,22 @@ export class ActionExecutor {
       }
       case 'upperCase': {
         const upperCaseText = text.toUpperCase();
+        console.log('Upper case text: ', upperCaseText);
+        clipboard.writeText(upperCaseText);
         return { success: true, message: `Upper case text: ${upperCaseText}` };
       }
-      case 'lowerCase': {
-        const lowerCaseText = text.toLowerCase();
-        return { success: true, message: `Lower case text: ${lowerCaseText}` };
+      case 'titleCase': {
+        const titleCaseText = text.toLowerCase();
+        clipboard.writeText(titleCaseText);
+        return { success: true, message: `Title case text: ${titleCaseText}` };
       }
       case 'pasteText': {
         const textToPaste = "Get preset text from shortcut";
+        clipboard.writeText(textToPaste);
         return { success: true, message: `Pasted text: ${textToPaste}` };
       }
       default:
+        console.log('Unknown text action type: ', actionDetails.actionType);
         return { success: false, message: 'Unknown text action type' };
     }
   }
@@ -118,8 +123,7 @@ export class ActionExecutor {
       case 'file':
         return await this.executeFile(actionDetails as FileActionDetails);
       case 'text':
-        console.log('Text action not implemented yet.');
-        return { success: false, message: 'Text action not implemented yet.' };
+        return await this.executeTextAction(actionDetails as TextActionDetails);
       case 'ai':
         console.log('AI action not implemented yet.');
         return { success: false, message: 'AI action not implemented yet.' };
