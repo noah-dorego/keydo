@@ -15,10 +15,20 @@ export interface FileActionDetails {
   filePath: string;
 }
 
+export interface WebsiteActionDetails {
+  websiteUrl: string;
+}
+
+export interface BasicActionDetails {
+  actionType: string;
+  websiteUrl?: string;
+}
+
 export interface AIActionDetails {
   message: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionDetails = Record<string, any>;
 
 export class ActionExecutor {
@@ -116,6 +126,24 @@ export class ActionExecutor {
     }
   }
 
+  static async executeWebsite(actionDetails: WebsiteActionDetails): Promise<{ success: boolean; message: string }> {
+    if (!actionDetails.websiteUrl) {
+      const errorMsg = 'Website URL is not provided.';
+      console.error(errorMsg);
+      return { success: false, message: errorMsg };
+    }
+
+    try {
+      // Use shell.openExternal to open the URL in the default browser
+      await shell.openExternal(actionDetails.websiteUrl);
+      return { success: true, message: 'Website opened successfully' };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to open website: ${message}`);
+      return { success: false, message };
+    }
+  }
+
   static async executeAction(actionType: string, actionDetails: ActionDetails): Promise<{ success: boolean; message: string }> {
     switch (actionType) {
       case 'script':
@@ -124,11 +152,36 @@ export class ActionExecutor {
         return await this.executeFile(actionDetails as FileActionDetails);
       case 'text':
         return await this.executeTextAction(actionDetails as TextActionDetails);
+      case 'basic':
+        return await this.executeBasicAction(actionDetails as BasicActionDetails);
       case 'ai':
         console.log('AI action not implemented yet.');
         return { success: false, message: 'AI action not implemented yet.' };
       default: {
         const errorMsg = `Unknown action type: ${actionType}`;
+        console.error(errorMsg);
+        return { success: false, message: errorMsg };
+      }
+    }
+  }
+
+  static async executeBasicAction(actionDetails: BasicActionDetails): Promise<{ success: boolean; message: string }> {
+    const { actionType, websiteUrl } = actionDetails;
+    
+    switch (actionType) {
+      case 'openWebsite':
+        if (!websiteUrl) {
+          return { success: false, message: 'Website URL is required for openWebsite action' };
+        }
+        return await this.executeWebsite({ websiteUrl });
+      case 'organizeDesktop':
+        console.log('Organize desktop action not implemented yet.');
+        return { success: false, message: 'Organize desktop action not implemented yet.' };
+      case 'closeWindows':
+        console.log('Close windows action not implemented yet.');
+        return { success: false, message: 'Close windows action not implemented yet.' };
+      default: {
+        const errorMsg = `Unknown basic action type: ${actionType}`;
         console.error(errorMsg);
         return { success: false, message: errorMsg };
       }

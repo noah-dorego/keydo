@@ -12,5 +12,6 @@ export enum ActionType {
   Script = "script",
   Text = "text",
   File = "file",
+  Builtin = "builtin",
   Ai = "ai",
 } 
