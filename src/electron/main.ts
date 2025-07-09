@@ -16,8 +16,10 @@ const createWindow = () => {
     webPreferences: {
       preload: utils.getPreloadPath(),
     },
-    minWidth: 500,
-    minHeight: 600,
+    width: 1000,
+    height: 700,
+    minWidth: 1000,
+    minHeight: 700,
   });
 
   // Load from hosted port in dev mode, and from build in prod

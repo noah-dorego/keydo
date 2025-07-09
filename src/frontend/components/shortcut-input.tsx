@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Key, keyMap } from '@/frontend/types.ts';
+import { Key } from '@/frontend/types.ts';
+import { keyMap } from '@/frontend/constants.ts';
 import { Button } from '@/frontend/components/ui/button.tsx';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import { KeySlot } from '@/frontend/components/KeySlot.tsx'; // Import the new KeySlot component

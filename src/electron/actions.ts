@@ -1,6 +1,10 @@
 import { spawn } from 'child_process';
 import { shell } from 'electron';
 import { clipboard } from 'electron';
+import path from 'path';
+import fs from 'fs';
+import { app } from 'electron';
+import { FILE_ORGANIZATION_EXTENSIONS } from './constants.js';
 
 // Define action detail types for better type safety
 export interface ScriptActionDetails {
@@ -26,6 +30,11 @@ export interface BasicActionDetails {
 
 export interface AIActionDetails {
   message: string;
+}
+
+export interface FileOrganizationDetails {
+  sourcePath?: string; // Optional, defaults to desktop
+  extensions?: Record<string, string>; // e.g., { '.pdf': 'Documents', '.jpg': 'Images' }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,7 +153,91 @@ export class ActionExecutor {
     }
   }
 
+  static async executeFileOrganization(actionDetails: FileOrganizationDetails): Promise<{ success: boolean; message: string }> {
+    try {
+      // Get desktop path
+      let desktopPath: string;
+
+      if (process.platform === 'win32') {
+        // On Windows, try multiple approaches to find the desktop
+        const possiblePaths = [
+          path.join(app.getPath('home'), 'Desktop'),
+          path.join(process.env.USERPROFILE || '', 'Desktop'),
+          path.join(process.env.ONEDRIVE || '', 'Desktop'),
+          path.join(process.env.ONEDRIVE || '', 'OneDrive', 'Desktop')
+        ];
+
+        // Find the first path that exists
+        desktopPath = possiblePaths.find(p => fs.existsSync(p)) || possiblePaths[0];
+        console.log('Desktop path found:', desktopPath);
+      } else {
+        // On other platforms, use the standard approach
+        desktopPath = path.join(app.getPath('home'), 'Desktop');
+      }
+
+      const sourcePath = actionDetails.sourcePath || desktopPath;
+      
+      // Default extensions mapping if none provided
+      const extensions = actionDetails.extensions || FILE_ORGANIZATION_EXTENSIONS;
+
+      // Read all files in the source directory
+      const files = fs.readdirSync(sourcePath);
+      let movedCount = 0;
+      const errors: string[] = [];
+
+      for (const file of files) {
+        const filePath = path.join(sourcePath, file);
+        const stats = fs.statSync(filePath);
+        
+        // Skip directories
+        if (stats.isDirectory()) continue;
+        
+        const ext = path.extname(file).toLowerCase();
+        const targetFolder = extensions[ext];
+        
+        if (targetFolder) {
+          const targetPath = path.join(sourcePath, targetFolder);
+          
+          // Create target folder if it doesn't exist
+          if (!fs.existsSync(targetPath)) {
+            fs.mkdirSync(targetPath, { recursive: true });
+          }
+          
+          // Move the file
+          const newFilePath = path.join(targetPath, file);
+          
+          // Handle duplicate filenames
+          let finalPath = newFilePath;
+          let counter = 1;
+          while (fs.existsSync(finalPath)) {
+            const nameWithoutExt = path.parse(file).name;
+            const ext = path.extname(file);
+            finalPath = path.join(targetPath, `${nameWithoutExt}_${counter}${ext}`);
+            counter++;
+          }
+          
+          fs.renameSync(filePath, finalPath);
+          movedCount++;
+        }
+      }
+
+      const message = `Successfully organized ${movedCount} files.`;
+      if (errors.length > 0) {
+        console.warn('Some files could not be moved:', errors);
+      }
+      
+      return { success: true, message };
+      
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to organize files: ${message}`);
+      return { success: false, message };
+    }
+  }
+
   static async executeAction(actionType: string, actionDetails: ActionDetails): Promise<{ success: boolean; message: string }> {
+    console.log('Executing action: ', actionType, actionDetails);
+
     switch (actionType) {
       case 'script':
         return await this.executeScript(actionDetails as ScriptActionDetails);
@@ -154,6 +247,8 @@ export class ActionExecutor {
         return await this.executeTextAction(actionDetails as TextActionDetails);
       case 'basic':
         return await this.executeBasicAction(actionDetails as BasicActionDetails);
+      case 'fileOrganization':
+        return await this.executeFileOrganization(actionDetails as FileOrganizationDetails);
       case 'ai':
         console.log('AI action not implemented yet.');
         return { success: false, message: 'AI action not implemented yet.' };
@@ -175,8 +270,8 @@ export class ActionExecutor {
         }
         return await this.executeWebsite({ websiteUrl });
       case 'organizeDesktop':
-        console.log('Organize desktop action not implemented yet.');
-        return { success: false, message: 'Organize desktop action not implemented yet.' };
+        console.log('Organizing desktop...');
+        return await this.executeFileOrganization({});
       case 'closeWindows':
         console.log('Close windows action not implemented yet.');
         return { success: false, message: 'Close windows action not implemented yet.' };
