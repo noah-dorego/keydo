@@ -18,21 +18,19 @@ export function getPreloadPath() {
 }
 
 export const registerShortcut = (
-  accelerator: string,
-  actionType: string,
-  actionDetails: Record<string, any>
+  data: ShortcutProps
 ) => {
   try {
-    globalShortcut.register(accelerator, () => {
+    globalShortcut.register(data.accelerator, () => {
       console.log(
-        `Shortcut triggered: ${accelerator}, Action: ${actionType}`
+        `Shortcut triggered: ${data.accelerator}, Action: ${data.actionType}`
       );
-      ActionExecutor.executeAction(actionType, actionDetails);
+      ActionExecutor.executeAction(data);
     });
-    console.log(`Shortcut registered: ${accelerator}`);
+    console.log(`Shortcut registered: ${data.accelerator}`);
     return true;
   } catch (error) {
-    console.log(`Error registering shortcut ${accelerator}:`, error);
+    console.log(`Error registering shortcut ${data.accelerator}:`, error);
     return false;
   }
 };

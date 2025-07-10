@@ -1,10 +1,9 @@
 import { spawn } from 'child_process';
-import { shell } from 'electron';
-import { clipboard } from 'electron';
+import { app, shell, clipboard, Notification, BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { app } from 'electron';
 import { FILE_ORGANIZATION_EXTENSIONS } from './constants.js';
+import { ShortcutProps } from './types.js';
 
 // Define action detail types for better type safety
 export interface ScriptActionDetails {
@@ -235,29 +234,59 @@ export class ActionExecutor {
     }
   }
 
-  static async executeAction(actionType: string, actionDetails: ActionDetails): Promise<{ success: boolean; message: string }> {
+  static async executeAction({name, actionType, actionDetails}: ShortcutProps): Promise<{ success: boolean; message: string }> {
     console.log('Executing action: ', actionType, actionDetails);
+
+    let result: { success: boolean; message: string };
 
     switch (actionType) {
       case 'script':
-        return await this.executeScript(actionDetails as ScriptActionDetails);
+        result = await this.executeScript(actionDetails as unknown as ScriptActionDetails);
+        break;
       case 'file':
-        return await this.executeFile(actionDetails as FileActionDetails);
+        result = await this.executeFile(actionDetails as unknown as FileActionDetails);
+        break;
       case 'text':
-        return await this.executeTextAction(actionDetails as TextActionDetails);
+        result = await this.executeTextAction(actionDetails as unknown as TextActionDetails);
+        break;
       case 'basic':
-        return await this.executeBasicAction(actionDetails as BasicActionDetails);
+        result = await this.executeBasicAction(actionDetails as unknown as BasicActionDetails);
+        break;
       case 'fileOrganization':
-        return await this.executeFileOrganization(actionDetails as FileOrganizationDetails);
+        result = await this.executeFileOrganization(actionDetails as FileOrganizationDetails);
+        break;
       case 'ai':
         console.log('AI action not implemented yet.');
-        return { success: false, message: 'AI action not implemented yet.' };
+        result = { success: false, message: 'AI action not implemented yet.' };
+        break;
       default: {
         const errorMsg = `Unknown action type: ${actionType}`;
         console.error(errorMsg);
-        return { success: false, message: errorMsg };
+        result = { success: false, message: errorMsg };
+        break;
       }
     }
+
+    // Show notification after action completes
+    const NOTIFICATION_TITLE = `${name}`;
+    const NOTIFICATION_BODY = result.success ? 'Shortcut executed successfully!' : `Error: ${result.message}`;
+
+    new Notification({
+      title: NOTIFICATION_TITLE,
+      body: NOTIFICATION_BODY
+    }).show();
+
+    // Play sound via IPC to frontend
+    try {
+      const windows = BrowserWindow.getAllWindows();
+      if (windows.length > 0) {
+        windows[0].webContents.send('play-shortcut-sound');
+      }
+    } catch (error) {
+      console.warn('Failed to trigger sound via IPC:', error);
+    }
+
+    return result;
   }
 
   static async executeBasicAction(actionDetails: BasicActionDetails): Promise<{ success: boolean; message: string }> {
@@ -282,5 +311,7 @@ export class ActionExecutor {
       }
     }
   }
+
+
 }
 

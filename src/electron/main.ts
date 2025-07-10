@@ -53,11 +53,7 @@ app.whenReady().then(() => {
       for (const id in shortcutList) {
         const shortcut = shortcutList[id];
         if (shortcut) {
-          utils.registerShortcut(
-            shortcut.accelerator,
-            shortcut.actionType,
-            shortcut.actionDetails
-          );
+          utils.registerShortcut(shortcut);
         }
       }
     } catch (error) {
@@ -90,9 +86,7 @@ app.whenReady().then(() => {
     }
 
     const success = utils.registerShortcut(
-      data.accelerator,
-      data.actionType,
-      data.actionDetails
+      data
     );
 
     if (success) {
@@ -138,6 +132,14 @@ app.whenReady().then(() => {
     }
 
     return { success: true, message: "Shortcut deleted successfully." };
+  });
+
+  ipcMain.handle("play-shortcut-sound", () => {
+    // Send a message to the renderer process to play the sound
+    if (mainWindow) {
+      mainWindow.webContents.send("play-shortcut-sound");
+    }
+    return { success: true };
   });
 });
 
