@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/frontend/components/ui/dialog.tsx";
 import { Card } from "@/frontend/components/ui/card.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/frontend/components/ui/tooltip.tsx";
 import {
   FileText,
   Terminal,
@@ -33,7 +34,7 @@ interface ActionType {
   id: string;
   name: string;
   icon: React.ElementType;
-  disabled?: boolean;
+  comingSoon?: boolean;
 }
 
 interface TextManipulationType {
@@ -53,8 +54,8 @@ const actionTypes: ActionType[] = [
   { id: "text", name: "Text Manipulation", icon: FileText },
   { id: "file", name: "File System", icon: FolderOpen },
   { id: "script", name: "Run Script", icon: Terminal },
-  { id: "ai", name: "AI Action", icon: Lightbulb, disabled: true },
-  { id: "custom", name: "Custom Shortcuts", icon: Cog, disabled: true },
+  { id: "ai", name: "AI Action", icon: Lightbulb, comingSoon: true },
+  { id: "custom", name: "Custom Shortcuts", icon: Cog, comingSoon: true },
 ];
 
 const textManipulationTypes: TextManipulationType[] = [
@@ -77,15 +78,15 @@ const stepConfig: Record<string, string[] | Record<string, string[]>> = {
   basic: {
     // Basic subtypes -> step sequence
     openWebsite: ['actionType', 'actionConfig', 'websiteInput', 'shortcutConfig'],
+    openApplications: ['actionType', 'actionConfig', 'applicationInput', 'shortcutConfig'],
     organizeDesktop: ['actionType', 'actionConfig', 'fileOrganizationPreview', 'shortcutConfig'],
-    closeWindows: ['actionType', 'shortcutConfig'],
   },
   file: {
     // File system subtypes -> step sequence
-    openFile: ['actionType', 'actionConfig', 'shortcutConfig'],
-    openDirectory: ['actionType', 'actionConfig', 'shortcutConfig'],
+    openFile: ['actionType', 'actionConfig', 'pathInput', 'shortcutConfig'],
+    openDirectory: ['actionType', 'actionConfig', 'pathInput', 'shortcutConfig'],
     cleanDesktop: ['actionType', 'shortcutConfig'],
-    openTerminal: ['actionType', 'actionConfig', 'shortcutConfig'],
+    openTerminal: ['actionType', 'actionConfig', 'pathInput', 'shortcutConfig'],
   },
   script: ['actionType', 'actionConfig', 'shortcutConfig'],
   ai: ['actionType', 'shortcutConfig'],
@@ -124,6 +125,8 @@ interface StepData {
   shortcutName: string;
   definedShortcut: LocalShortcutKey | null;
   pasteText: string; // New field for paste text input
+  applicationPath: string; // New field for application path
+  filePath: string;
 }
 
 export function AddShortcutModal({
@@ -142,6 +145,8 @@ export function AddShortcutModal({
     shortcutName: "",
     definedShortcut: { modifier: [Key.Ctrl, Key.Shift], key: Key.P },
     pasteText: "", // New field for paste text input
+    applicationPath: "", // New field for application path
+    filePath: "",
   });
 
   // Compute the current step flow based on selections
@@ -217,10 +222,18 @@ export function AddShortcutModal({
           return !!stepData.scriptPath.trim();
         }
         return true;
+      case 'pathInput':
+        return !!stepData.filePath.trim();
       case 'textInput':
         return !!stepData.pasteText.trim();
-      case 'websiteInput':
-        return !!stepData.websiteUrl.trim();
+      case 'websiteInput': {
+        const urls = stepData.websiteUrl.split(',').map(url => url.trim()).filter(url => url.length > 0);
+        return urls.length > 0;
+      }
+      case 'applicationInput': {
+        const apps = stepData.applicationPath.split(',').map(path => path.trim()).filter(path => path.length > 0);
+        return apps.length > 0;
+      }
       case 'fileOrganizationPreview':
         return true; // This step is just informational, no validation needed
       case 'shortcutConfig':
@@ -254,12 +267,18 @@ export function AddShortcutModal({
         case "basic":
           actionDetails = {
             actionType: stepData.builtinType,
-            ...(stepData.builtinType === 'openWebsite' && { websiteUrl: stepData.websiteUrl }),
+            ...(stepData.builtinType === 'openWebsite' && { 
+              websites: stepData.websiteUrl.split(',').map(url => url.trim()).filter(url => url.length > 0)
+            }),
+            ...(stepData.builtinType === 'openApplications' && { 
+              applications: stepData.applicationPath.split(',').map(path => path.trim()).filter(path => path.length > 0)
+            }),
           };
           break;
         case "file":
           actionDetails = {
             actionType: stepData.fileSystemType,
+            path: stepData.filePath,
           };
           break;
         case "script":
@@ -311,6 +330,8 @@ export function AddShortcutModal({
       shortcutName: "",
       definedShortcut: { modifier: [Key.Ctrl, Key.Shift], key: Key.P },
       pasteText: "",
+      applicationPath: "",
+      filePath: "",
     });
     setCurrentStepIndex(0);
     onOpenChange(false);
@@ -332,18 +353,40 @@ export function AddShortcutModal({
       </h6>
       <div className="grid grid-cols-2 gap-4">
         {actionTypes.map((action) => (
-          <Button
+          action.comingSoon ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger>
+                <Button
+                  key={action.id}
+                  variant={
+                    stepData.actionType === action.id ? "default" : "outline"
+                  }
+                  onClick={() => handleActionTypeSelect(action.id)}
+                  className="flex flex-col w-full items-center justify-center h-18 p-4 disabled:bg-gray-300"
+                  disabled
+                >
+                  <action.icon className="w-8 h-8 mb-2" />
+                  <span>{action.name}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Coming Soon</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
             key={action.id}
             variant={
               stepData.actionType === action.id ? "default" : "outline"
             }
             onClick={() => handleActionTypeSelect(action.id)}
-            className="flex flex-col items-center justify-center h-18 p-4 disabled:bg-gray-300"
-            disabled={action.disabled}
+            className="flex flex-col w-full items-center justify-center h-18 p-4 disabled:bg-gray-300"
           >
             <action.icon className="w-8 h-8 mb-2" />
             <span>{action.name}</span>
           </Button>
+          )
+          
         ))}
       </div>
     </div>
@@ -448,7 +491,14 @@ export function AddShortcutModal({
                 className="w-full justify-start"
                 onClick={() => handleBuiltinTypeSelect('openWebsite')}
               >
-                Open Website
+                Open Website(s)
+              </Button>
+              <Button 
+                variant={stepData.builtinType === 'openApplications' ? "default" : "outline"}
+                className="w-full justify-start"
+                onClick={() => handleBuiltinTypeSelect('openApplications')}
+              >
+                Open Application(s)
               </Button>
               <Button 
                 variant={stepData.builtinType === 'organizeDesktop' ? "default" : "outline"}
@@ -456,13 +506,6 @@ export function AddShortcutModal({
                 onClick={() => handleBuiltinTypeSelect('organizeDesktop')}
               >
                 Organize Desktop
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                disabled={true}
-              >
-                Close Specific Windows
               </Button>
             </div>
           </>
@@ -495,19 +538,57 @@ export function AddShortcutModal({
     </div>
   );
 
-  const renderWebsiteInputStep = () => (
+  const renderPathInputStep = () => (
     <div>
-      <h3 className="text-md font-medium">Enter Website URL</h3>
+      <h3 className="text-md font-medium">Enter Path</h3>
       <h6 className="mb-4 text-sm text-muted-foreground">
-        Enter the URL of the website you want to open when this shortcut is triggered.
+        Enter the absolute path for the file or directory.
       </h6>
       <Input
-        type="url"
+        type="text"
+        id="filePath"
+        value={stepData.filePath}
+        onChange={(e) => updateStepData({ filePath: e.target.value })}
+        placeholder="e.g., C:\\Users\\YourUser\\Desktop or /home/user/documents"
+      />
+    </div>
+  );
+
+  const renderWebsiteInputStep = () => (
+    <div>
+      <h3 className="text-md font-medium">Enter Website URL(s)</h3>
+      <h6 className="mb-4 text-sm text-muted-foreground">
+        Enter the URLs of the websites you want to open when this shortcut is triggered. Separate multiple websites with commas.
+      </h6>
+      <Input
+        type="text"
         id="websiteUrl"
         value={stepData.websiteUrl}
         onChange={(e) => updateStepData({ websiteUrl: e.target.value })}
-        placeholder="https://example.com"
+        placeholder="https://google.com, https://github.com, https://stackoverflow.com"
       />
+      <h6 className="mt-2 text-xs text-muted-foreground">
+        Examples: https://google.com, https://github.com, https://stackoverflow.com
+      </h6>
+    </div>
+  );
+
+  const renderApplicationInputStep = () => (
+    <div>
+      <h3 className="text-md font-medium">Enter Application Paths</h3>
+      <h6 className="mb-4 text-sm text-muted-foreground">
+        Enter the paths to the applications you want to open when this shortcut is triggered. Separate multiple applications with commas.
+      </h6>
+      <Input
+        type="text"
+        id="applicationPath"
+        value={stepData.applicationPath}
+        onChange={(e) => updateStepData({ applicationPath: e.target.value })}
+        placeholder="notepad.exe, calc.exe, chrome.exe"
+      />
+      <h6 className="mt-2 text-xs text-muted-foreground">
+        Examples: notepad.exe, calc.exe, chrome.exe, "C:\Program Files\Notepad++\notepad++.exe"
+      </h6>
     </div>
   );
 
@@ -581,6 +662,10 @@ export function AddShortcutModal({
         return renderTextInputStep();
       case 'websiteInput':
         return renderWebsiteInputStep();
+      case 'applicationInput':
+        return renderApplicationInputStep();
+      case 'pathInput':
+        return renderPathInputStep();
       case 'fileOrganizationPreview':
         return renderFileOrganizationPreviewStep();
       case 'shortcutConfig':

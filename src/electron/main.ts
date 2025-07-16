@@ -141,6 +141,8 @@ app.whenReady().then(() => {
     }
     return { success: true };
   });
+
+
 });
 
 // Do not quit when windows are closed, continue listening for shortcuts

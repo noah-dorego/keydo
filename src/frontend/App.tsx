@@ -6,6 +6,7 @@ import { SettingsPage } from "@/frontend/pages/settings_page.tsx";
 import { AudioPlayer } from "@/frontend/lib/audio.ts";
 
 import { ShortcutProps } from "@/frontend/types.ts";
+import { TooltipProvider } from "@/frontend/components/ui/tooltip.tsx";
 
 // adding type for IPC event handlers
 declare global {
@@ -31,13 +32,19 @@ function App() {
   }, []);
 
   return (
-    <HashRouter>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<ShortcutList />} />
-        <Route path="/settings" element={<SettingsPage />} />
-      </Routes>
-    </HashRouter>
+    <div className="h-screen flex flex-col overflow-hidden">
+      <HashRouter>
+        <TooltipProvider>
+        <NavBar />
+        <div className="flex-1 overflow-hidden">
+          <Routes>
+            <Route path="/" element={<ShortcutList />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
+        </div>
+        </TooltipProvider>
+      </HashRouter>
+    </div>
   );
 }
 

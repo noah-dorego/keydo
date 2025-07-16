@@ -52,8 +52,8 @@ export function ShortcutRow({ id, keys, action, onDelete }: ShortcutRowProps) {
         isOpen={isConfirmModalOpen}
         onOpenChange={setIsConfirmModalOpen}
         onConfirm={handleDelete}
-        title={`Delete Shortcut: ${action}`}
-        action="delete this shortcut"
+        title={"Delete Shortcut"}
+        action={`delete "${action}"`}
         buttonText="Delete"
         buttonVariant="destructive"
       />

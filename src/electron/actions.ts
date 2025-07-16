@@ -1,9 +1,15 @@
 import { spawn } from 'child_process';
-import { app, shell, clipboard, Notification, BrowserWindow } from 'electron';
+import { app, shell, clipboard, Notification, BrowserWindow, screen } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { FILE_ORGANIZATION_EXTENSIONS } from './constants.js';
 import { ShortcutProps } from './types.js';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Define action detail types for better type safety
 export interface ScriptActionDetails {
@@ -12,10 +18,12 @@ export interface ScriptActionDetails {
 
 export interface TextActionDetails {
   actionType: string;
+  pasteText?: string;
 }
 
 export interface FileActionDetails {
-  filePath: string;
+  actionType: string;
+  path: string;
 }
 
 export interface WebsiteActionDetails {
@@ -25,6 +33,9 @@ export interface WebsiteActionDetails {
 export interface BasicActionDetails {
   actionType: string;
   websiteUrl?: string;
+  websites?: string[]; // Array of website URLs for multiple websites
+  applicationPath?: string;
+  applications?: string[]; // Array of application paths for multiple applications
 }
 
 export interface AIActionDetails {
@@ -50,7 +61,9 @@ export class ActionExecutor {
       }
       case 'wordCount': {
         const wordCount = text.split(/\s+/).filter(Boolean).length;
-        return { success: true, message: `Word count: ${wordCount}` };
+        const charCount = text.length;
+        await this.showWordCountPopup(wordCount, charCount);
+        return { success: true, message: `Word count: ${wordCount}, Character count: ${charCount}` };
       }
       case 'upperCase': {
         const upperCaseText = text.toUpperCase();
@@ -64,7 +77,14 @@ export class ActionExecutor {
         return { success: true, message: `Title case text: ${titleCaseText}` };
       }
       case 'pasteText': {
-        const textToPaste = "Get preset text from shortcut";
+        const textToPaste = actionDetails.pasteText;
+
+        if (textToPaste === undefined) {
+          const errorMessage = 'No text provided for pasteText action.';
+          console.log(errorMessage);
+          return { success: false, message: errorMessage };
+        }
+
         clipboard.writeText(textToPaste);
         return { success: true, message: `Pasted text: ${textToPaste}` };
       }
@@ -72,6 +92,129 @@ export class ActionExecutor {
         console.log('Unknown text action type: ', actionDetails.actionType);
         return { success: false, message: 'Unknown text action type' };
     }
+  }
+
+  static async showWordCountPopup(wordCount: number, charCount: number): Promise<void> {
+    // Create a new popup window
+    const popupWindow = new BrowserWindow({
+      width: 450,
+      height: 300,
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      frame: false,
+      transparent: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.cjs'),
+      }
+    });
+
+    // Load the popup HTML content
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Text Analysis</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 24px;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: white;
+              color: #1f2937;
+              border-radius: 12px;
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+              user-select: none;
+              overflow: hidden;
+            }
+            .container {
+              text-align: center;
+            }
+            .title {
+              font-size: 20px;
+              font-weight: 600;
+              margin-bottom: 24px;
+              color: #111827;
+            }
+            .stats-container {
+              display: flex;
+              gap: 16px;
+              justify-content: center;
+              margin-bottom: 20px;
+            }
+            .stat-card {
+              flex: 1;
+              padding: 16px;
+              background: #f9fafb;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            .stat-label {
+              font-size: 14px;
+              color: #6b7280;
+              margin-bottom: 8px;
+              font-weight: 500;
+            }
+            .stat-value {
+              font-size: 28px;
+              font-weight: bold;
+              color: #111827;
+            }
+            .close-btn {
+              width: 100%;
+              padding: 8px 16px;
+              background: #f3f4f6;
+              border: 1px solid #e5e7eb;
+              color: #6b7280;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+              transition: all 0.2s;
+            }
+            .close-btn:hover {
+              background: #e5e7eb;
+              color: #374151;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="title">📊 Text Analysis</div>
+            <div class="stats-container">
+              <div class="stat-card">
+                <div class="stat-label">Words</div>
+                <div class="stat-value">${wordCount}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Characters</div>
+                <div class="stat-value">${charCount}</div>
+              </div>
+            </div>
+            <button class="close-btn" onclick="window.close()">Close</button>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Load the HTML content
+    popupWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
+
+    // Position the window in the center of the screen
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+    const windowBounds = popupWindow.getBounds();
+    
+    popupWindow.setPosition(
+      Math.round((width - windowBounds.width) / 2),
+      Math.round((height - windowBounds.height) / 2)
+    );
   }
 
   static async executeScript(actionDetails: ScriptActionDetails): Promise<{ success: boolean; message: string }> {
@@ -117,21 +260,77 @@ export class ActionExecutor {
   }
 
   static async executeFile(actionDetails: FileActionDetails): Promise<{ success: boolean; message: string }> {
-    if (!actionDetails.filePath) {
-      const errorMsg = 'File path is not provided.';
+    if (!actionDetails.path) {
+      const errorMsg = 'Path is not provided.';
       console.error(errorMsg);
       return { success: false, message: errorMsg };
     }
 
-    try {
-      // Use shell.openPath to open the file with the default application
-      await shell.openPath(actionDetails.filePath);
-      return { success: true, message: 'File opened successfully' };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`Failed to open file: ${message}`);
-      return { success: false, message };
+    switch (actionDetails.actionType) {
+      case 'openFile':
+      case 'openDirectory': // shell.openPath works for directories too
+        try {
+          await shell.openPath(actionDetails.path);
+          return { success: true, message: 'Path opened successfully' };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(`Failed to open path: ${message}`);
+          return { success: false, message };
+        }
+      
+      case 'openTerminal':
+        try {
+          // Check if the directory exists
+          if (!fs.existsSync(actionDetails.path) || !fs.statSync(actionDetails.path).isDirectory()) {
+            return { success: false, message: `Directory not found at path: ${actionDetails.path}` };
+          }
+          
+          if (process.platform === 'win32') {
+            spawn('cmd.exe', ['/c', 'start'], { cwd: actionDetails.path, detached: true, stdio: 'ignore' }).unref();
+          } else if (process.platform === 'darwin') {
+            spawn('open', ['-a', 'Terminal', actionDetails.path], { detached: true, stdio: 'ignore' }).unref();
+          } else {
+            // Assume other Unix-like systems
+            spawn('x-terminal-emulator', { cwd: actionDetails.path, detached: true, stdio: 'ignore' }).unref();
+          }
+          return { success: true, message: `Terminal opened at ${actionDetails.path}` };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return { success: false, message: `Failed to open terminal: ${message}` };
+        }
+      
+      default:
+        return { success: false, message: `Unknown file action type: ${actionDetails.actionType}` };
     }
+  }
+
+  static async executeMultipleApplications(applications: string[]): Promise<{ success: boolean; message: string }> {
+    if (!applications || applications.length === 0) {
+      return { success: false, message: 'No applications provided' };
+    }
+
+    let successCount = 0;
+    const failedApplications: string[] = [];
+
+    for (const appPath of applications) {
+      try {
+        await shell.openPath(appPath);
+        successCount++;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Failed to open application "${appPath}": ${message}`);
+        failedApplications.push(`${appPath}: ${message}`);
+      }
+    }
+
+    const totalApplications = applications.length;
+    const resultMessage = `Attempted to open ${totalApplications} applications. Successfully opened ${successCount}. Failed: ${failedApplications.length}.`;
+    
+    if (failedApplications.length > 0) {
+      console.warn('Failed to open applications:', failedApplications);
+    }
+    
+    return { success: successCount > 0, message: resultMessage };
   }
 
   static async executeWebsite(actionDetails: WebsiteActionDetails): Promise<{ success: boolean; message: string }> {
@@ -150,6 +349,35 @@ export class ActionExecutor {
       console.error(`Failed to open website: ${message}`);
       return { success: false, message };
     }
+  }
+
+  static async executeMultipleWebsites(websites: string[]): Promise<{ success: boolean; message: string }> {
+    if (!websites || websites.length === 0) {
+      return { success: false, message: 'No websites provided' };
+    }
+
+    let successCount = 0;
+    const failedWebsites: string[] = [];
+
+    for (const websiteUrl of websites) {
+      try {
+        await shell.openExternal(websiteUrl);
+        successCount++;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Failed to open website "${websiteUrl}": ${message}`);
+        failedWebsites.push(`${websiteUrl}: ${message}`);
+      }
+    }
+
+    const totalWebsites = websites.length;
+    const resultMessage = `Attempted to open ${totalWebsites} websites. Successfully opened ${successCount}. Failed: ${failedWebsites.length}.`;
+    
+    if (failedWebsites.length > 0) {
+      console.warn('Failed to open websites:', failedWebsites);
+    }
+    
+    return { success: successCount > 0, message: resultMessage };
   }
 
   static async executeFileOrganization(actionDetails: FileOrganizationDetails): Promise<{ success: boolean; message: string }> {
@@ -290,14 +518,26 @@ export class ActionExecutor {
   }
 
   static async executeBasicAction(actionDetails: BasicActionDetails): Promise<{ success: boolean; message: string }> {
-    const { actionType, websiteUrl } = actionDetails;
+    const { actionType, websiteUrl, websites, applicationPath, applications } = actionDetails;
     
     switch (actionType) {
       case 'openWebsite':
-        if (!websiteUrl) {
-          return { success: false, message: 'Website URL is required for openWebsite action' };
+        if (websites && websites.length > 0) {
+          return await this.executeMultipleWebsites(websites);
+        } else if (websiteUrl) {
+          // Convert single website to array format for consistency
+          return await this.executeMultipleWebsites([websiteUrl]);
+        } else {
+          return { success: false, message: 'Website URL(s) are required for openWebsite action' };
         }
-        return await this.executeWebsite({ websiteUrl });
+      case 'openApplications':
+        if (applications && applications.length > 0) {
+          return await this.executeMultipleApplications(applications);
+        } else if (applicationPath) {
+          return await this.executeFile({ actionType: 'openFile', path: applicationPath });
+        } else {
+          return { success: false, message: 'Application path(s) are required for openApplications action' };
+        }
       case 'organizeDesktop':
         console.log('Organizing desktop...');
         return await this.executeFileOrganization({});
@@ -311,7 +551,5 @@ export class ActionExecutor {
       }
     }
   }
-
-
 }
 
