@@ -118,3 +118,47 @@ export type ShortcutProps = {
   actionType: string;
   actionDetails: Record<string, ActionParams> | undefined;
 };
+
+export interface ShortcutActionType {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  comingSoon?: boolean;
+}
+
+export interface TextManipulationType {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+}
+
+export interface FileStructureType {
+  id: string;
+  name:string;
+  icon: React.ElementType;
+}
+
+export interface AddShortcutModalProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onShortcutAdded: () => void;
+}
+
+export interface LocalShortcutKey {
+  modifier?: (Key | null)[];
+  key: Key | null;
+}
+
+export interface StepData {
+  actionType: string;
+  textManipulationType: string;
+  builtinType: string;
+  fileSystemType: string;
+  scriptPath: string;
+  websiteUrl: string;
+  shortcutName: string;
+  definedShortcut: LocalShortcutKey | null;
+  pasteText: string;
+  applicationPath: string;
+  filePath: string;
+}

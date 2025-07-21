@@ -3,7 +3,7 @@ import { Button } from "./ui/button.tsx";
 import { ShortcutRow } from "./shortcut-row.tsx";
 import { Key, ShortcutProps } from "@/frontend/types.ts";
 import { useEffect, useState } from "react";
-import { AddShortcutModal } from "./add-shortcut-modal.tsx";
+import { AddShortcutModal } from "@/frontend/components/add-shortcut-modal/AddShortcutModal.tsx";
 
 // Helper function to parse accelerator string to Key array
 // This is a simplified parser. Robust parsing might need to handle "CmdOrCtrl" or aliases.

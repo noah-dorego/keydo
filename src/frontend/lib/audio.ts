@@ -2,14 +2,19 @@
 export class AudioPlayer {
   private static audio: HTMLAudioElement | null = null;
 
-  static playShortcutSound(): void {
+  static async playShortcutSound(): Promise<void> {
     try {
+      const settings = await window.electron.getSettings();
+      if (!settings.notificationSoundsEnabled) {
+        return; // Do not play sound if disabled
+      }
+
       // Create audio element if it doesn't exist
       if (!this.audio) {
         this.audio = new Audio();
         this.audio.src = '/src/frontend/assets/notification_tone_1.mp3';
         this.audio.volume = 0.5;
-        
+
         // Clean up after playing
         this.audio.addEventListener('ended', () => {
           this.audio = null;
@@ -17,13 +22,12 @@ export class AudioPlayer {
       }
 
       // Play the sound
-      this.audio.play().catch(error => {
+      await this.audio.play().catch((error) => {
         console.warn('Failed to play shortcut sound:', error);
         this.audio = null; // Reset on error
       });
-      
     } catch (error) {
-      console.warn('Failed to play shortcut sound:', error);
+      console.warn('Failed to fetch settings or play sound:', error);
     }
   }
 

@@ -9,4 +9,7 @@ electron.contextBridge.exposeInMainWorld("electron", {
   playShortcutSound: () => electron.ipcRenderer.invoke("play-shortcut-sound"),
   onPlayShortcutSound: (callback: () => void) =>
     electron.ipcRenderer.on("play-shortcut-sound", callback),
+  getSettings: () => electron.ipcRenderer.invoke("settings:get"),
+  updateSettings: (key: string, value: boolean) =>
+    electron.ipcRenderer.invoke("settings:update", { key, value }),
 });

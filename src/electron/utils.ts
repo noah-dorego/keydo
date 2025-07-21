@@ -1,9 +1,15 @@
 import path from "path";
 import { app, globalShortcut } from "electron";
 import fs from "fs";
+import Store from "electron-store";
 import { SHORTCUT_LIST_PATH } from "./constants.js";
 import { ShortcutProps } from "./types.js";
 import { ActionExecutor } from "./actions.js";
+
+type Settings = {
+  notificationBannersEnabled: boolean;
+  notificationSoundsEnabled: boolean;
+};
 
 export function isDev(): boolean {
   return process.env.NODE_ENV === "development";
@@ -18,14 +24,15 @@ export function getPreloadPath() {
 }
 
 export const registerShortcut = (
-  data: ShortcutProps
+  data: ShortcutProps,
+  store: Store<Settings>
 ) => {
   try {
     globalShortcut.register(data.accelerator, () => {
       console.log(
         `Shortcut triggered: ${data.accelerator}, Action: ${data.actionType}`
       );
-      ActionExecutor.executeAction(data);
+      ActionExecutor.executeAction(data, store);
     });
     console.log(`Shortcut registered: ${data.accelerator}`);
     return true;

@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import Store from 'electron-store';
 import { FILE_ORGANIZATION_EXTENSIONS } from './constants.js';
 import { ShortcutProps } from './types.js';
 
@@ -49,6 +50,11 @@ export interface FileOrganizationDetails {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionDetails = Record<string, any>;
+
+type Settings = {
+  notificationBannersEnabled: boolean;
+  notificationSoundsEnabled: boolean;
+};
 
 export class ActionExecutor {
   static async executeTextAction(actionDetails: TextActionDetails): Promise<{ success: boolean; message: string }> {
@@ -462,47 +468,60 @@ export class ActionExecutor {
     }
   }
 
-  static async executeAction({name, actionType, actionDetails}: ShortcutProps): Promise<{ success: boolean; message: string }> {
+  static async executeAction(
+    { name, actionType, actionDetails }: ShortcutProps,
+    store: Store<Settings>
+  ): Promise<{ success: boolean; message: string }> {
     console.log('Executing action: ', actionType, actionDetails);
 
+    const actionMap: Record<
+      string,
+      (details: ActionDetails) => Promise<{ success: boolean; message: string }>
+    > = {
+      script: this.executeScript.bind(this) as (
+        details: ActionDetails
+      ) => Promise<{ success: boolean; message: string }>,
+      file: this.executeFile.bind(this) as (
+        details: ActionDetails
+      ) => Promise<{ success: boolean; message: string }>,
+      text: this.executeTextAction.bind(this) as (
+        details: ActionDetails
+      ) => Promise<{ success: boolean; message: string }>,
+      basic: this.executeBasicAction.bind(this) as (
+        details: ActionDetails
+      ) => Promise<{ success: boolean; message: string }>,
+      fileOrganization: this.executeFileOrganization.bind(this) as (
+        details: ActionDetails
+      ) => Promise<{ success: boolean; message: string }>,
+      ai: async () => {
+        console.log('AI action not implemented yet.');
+        return { success: false, message: 'AI action not implemented yet.' };
+      },
+    };
+
+    const action = actionMap[actionType];
     let result: { success: boolean; message: string };
 
-    switch (actionType) {
-      case 'script':
-        result = await this.executeScript(actionDetails as unknown as ScriptActionDetails);
-        break;
-      case 'file':
-        result = await this.executeFile(actionDetails as unknown as FileActionDetails);
-        break;
-      case 'text':
-        result = await this.executeTextAction(actionDetails as unknown as TextActionDetails);
-        break;
-      case 'basic':
-        result = await this.executeBasicAction(actionDetails as unknown as BasicActionDetails);
-        break;
-      case 'fileOrganization':
-        result = await this.executeFileOrganization(actionDetails as FileOrganizationDetails);
-        break;
-      case 'ai':
-        console.log('AI action not implemented yet.');
-        result = { success: false, message: 'AI action not implemented yet.' };
-        break;
-      default: {
-        const errorMsg = `Unknown action type: ${actionType}`;
-        console.error(errorMsg);
-        result = { success: false, message: errorMsg };
-        break;
-      }
+    if (action) {
+      result = await action(actionDetails);
+    } else {
+      const errorMsg = `Unknown action type: ${actionType}`;
+      console.error(errorMsg);
+      result = { success: false, message: errorMsg };
     }
 
-    // Show notification after action completes
-    const NOTIFICATION_TITLE = `${name}`;
-    const NOTIFICATION_BODY = result.success ? 'Shortcut executed successfully!' : `Error: ${result.message}`;
+    if (store.get('notificationBannersEnabled')) {
+      // Show notification after action completes
+      const NOTIFICATION_TITLE = `${name}`;
+      const NOTIFICATION_BODY = result.success
+        ? 'Shortcut executed successfully!'
+        : `Error: ${result.message}`;
 
-    new Notification({
-      title: NOTIFICATION_TITLE,
-      body: NOTIFICATION_BODY
-    }).show();
+      new Notification({
+        title: NOTIFICATION_TITLE,
+        body: NOTIFICATION_BODY,
+      }).show();
+    }
 
     // Play sound via IPC to frontend
     try {
@@ -520,17 +539,17 @@ export class ActionExecutor {
   static async executeBasicAction(actionDetails: BasicActionDetails): Promise<{ success: boolean; message: string }> {
     const { actionType, websiteUrl, websites, applicationPath, applications } = actionDetails;
     
-    switch (actionType) {
-      case 'openWebsite':
+    const basicActionMap: Record<string, () => Promise<{ success: boolean; message: string }>> = {
+      openWebsite: async () => {
         if (websites && websites.length > 0) {
           return await this.executeMultipleWebsites(websites);
         } else if (websiteUrl) {
-          // Convert single website to array format for consistency
           return await this.executeMultipleWebsites([websiteUrl]);
         } else {
           return { success: false, message: 'Website URL(s) are required for openWebsite action' };
         }
-      case 'openApplications':
+      },
+      openApplications: async () => {
         if (applications && applications.length > 0) {
           return await this.executeMultipleApplications(applications);
         } else if (applicationPath) {
@@ -538,17 +557,25 @@ export class ActionExecutor {
         } else {
           return { success: false, message: 'Application path(s) are required for openApplications action' };
         }
-      case 'organizeDesktop':
+      },
+      organizeDesktop: async () => {
         console.log('Organizing desktop...');
         return await this.executeFileOrganization({});
-      case 'closeWindows':
+      },
+      closeWindows: async () => {
         console.log('Close windows action not implemented yet.');
         return { success: false, message: 'Close windows action not implemented yet.' };
-      default: {
-        const errorMsg = `Unknown basic action type: ${actionType}`;
-        console.error(errorMsg);
-        return { success: false, message: errorMsg };
-      }
+      },
+    };
+
+    const action = basicActionMap[actionType];
+
+    if (action) {
+      return await action();
+    } else {
+      const errorMsg = `Unknown basic action type: ${actionType}`;
+      console.error(errorMsg);
+      return { success: false, message: errorMsg };
     }
   }
 }

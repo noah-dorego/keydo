@@ -5,21 +5,7 @@ import { ShortcutList } from "@/frontend/components/shortcut-list.tsx";
 import { SettingsPage } from "@/frontend/pages/settings_page.tsx";
 import { AudioPlayer } from "@/frontend/lib/audio.ts";
 
-import { ShortcutProps } from "@/frontend/types.ts";
 import { TooltipProvider } from "@/frontend/components/ui/tooltip.tsx";
-
-// adding type for IPC event handlers
-declare global {
-  interface Window {
-    electron: {
-      getShortcutList: () => Promise<Record<string, ShortcutProps> | null>;
-      addShortcut: (data: ShortcutProps) => Promise<{ success: boolean, message: string }>;
-      deleteShortcut: (shortcutId: string) => Promise<{ success: boolean, message: string }>;
-      playShortcutSound: () => Promise<{ success: boolean }>;
-      onPlayShortcutSound: (callback: () => void) => void;
-    };
-  }
-}
 
 function App() {
   useEffect(() => {
