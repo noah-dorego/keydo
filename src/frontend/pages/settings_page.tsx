@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Switch } from "@/frontend/components/ui/switch.tsx";
+import { useTheme } from "@/frontend/components/theme-provider.tsx";
 
 type Settings = {
   notificationBannersEnabled: boolean;
@@ -11,6 +12,7 @@ export function SettingsPage() {
     notificationBannersEnabled: true,
     notificationSoundsEnabled: true,
   });
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     window.electron.getSettings().then(setSettings);
@@ -26,32 +28,78 @@ export function SettingsPage() {
       <div className="px-4 pt-4">
         <h1 className="text-xl font-bold">Settings</h1>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-8">
-        <section>
-          <h2 className="text-lg font-semibold mb-4">Notifications</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label htmlFor="notification-banners">Notification Banners</label>
-              <Switch
-                id="notification-banners"
-                checked={settings.notificationBannersEnabled}
-                onCheckedChange={(value: boolean) =>
-                  handleSettingChange("notificationBannersEnabled", value)
-                }
-              />
+      <div className="overflow-y-auto px-4 py-4">
+        <div className="max-w-[500px] flex flex-col gap-4">
+          <section>
+            <h2 className="text-lg font-semibold mb-4">Appearance</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-[1fr_auto] gap-4">
+                <label>Theme</label>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="theme"
+                      value="light"
+                      checked={theme === "light"}
+                      onChange={() => setTheme("light")}
+                      className="text-primary"
+                    />
+                    <span>Light</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="theme"
+                      value="dark"
+                      checked={theme === "dark"}
+                      onChange={() => setTheme("dark")}
+                      className="text-primary"
+                    />
+                    <span>Dark</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="theme"
+                      value="system"
+                      checked={theme === "system"}
+                      onChange={() => setTheme("system")}
+                      className="text-primary"
+                    />
+                    <span>System</span>
+                  </label>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="notification-sounds">Notification Sounds</label>
-              <Switch
-                id="notification-sounds"
-                checked={settings.notificationSoundsEnabled}
-                onCheckedChange={(value: boolean) =>
-                  handleSettingChange("notificationSoundsEnabled", value)
-                }
-              />
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-[1fr_auto] gap-4">
+                <label htmlFor="notification-banners">Notification Banners</label>
+                <Switch
+                  id="notification-banners"
+                  checked={settings.notificationBannersEnabled}
+                  onCheckedChange={(value: boolean) =>
+                    handleSettingChange("notificationBannersEnabled", value)
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-[1fr_auto] gap-4">
+                <label htmlFor="notification-sounds">Notification Sounds</label>
+                <Switch
+                  id="notification-sounds"
+                  checked={settings.notificationSoundsEnabled}
+                  onCheckedChange={(value: boolean) =>
+                    handleSettingChange("notificationSoundsEnabled", value)
+                  }
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

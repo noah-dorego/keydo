@@ -75,12 +75,12 @@ export function ShortcutList() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="px-4 pt-4 bg-gradient-to-b from-white via-white/95 to-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <hr className="h-2 mb-4 bg-black rounded-lg"></hr>
+      <div className="px-4 pt-4 bg-gradient-to-b from-white via-white/95 to-white/80 dark:from-black dark:via-black/95 dark:to-black/80 backdrop-blur-sm sticky top-0 z-10">
+        <hr className="h-2 mb-4 bg-black dark:bg-white rounded-lg"></hr>
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold">Shortcuts</h1>
           <button
-            className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
+            className="rounded-full bg-black dark:border-solid dark:border-2 dark:border-white w-8 h-8 flex justify-center items-center"
             title="Add New Shortcut"
             aria-label="Add New Shortcut"
             onClick={openAddShortcutModal}

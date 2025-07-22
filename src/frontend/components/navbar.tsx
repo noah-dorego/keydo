@@ -5,7 +5,9 @@ import {
 } from "./ui/navigation-menu.tsx";
 
 import { Link, useNavigate } from "react-router";
-import { FaGear } from "react-icons/fa6";
+import { FaGear, FaHouse } from "react-icons/fa6";
+import { ThemeToggle } from "./theme-toggle.tsx";
+import { Button } from "./ui/button.tsx";
 
 import keydoLogo from "../assets/keydo_logo_dark.svg";
 
@@ -19,15 +21,30 @@ export function NavBar() {
       </Link>
       <NavigationMenu className="">
         <NavigationMenuList className="gap-2">
-          <NavigationMenuItem>
-            <button 
-              className="rounded-full bg-black w-8 h-8 flex justify-center items-center"
-              title="Settings"
-              aria-label="Settings"
-              onClick={() => navigate('/settings')}
+        <NavigationMenuItem>
+            <ThemeToggle />
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate('/')}
+              className="w-10 h-10"
+              title="Home"
             >
-              <FaGear size={16} color="white" />
-            </button>
+              <FaHouse size={16} />
+            </Button>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate('/settings')}
+              className="w-10 h-10"
+              title="Settings"
+            >
+              <FaGear size={16} />
+            </Button>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
