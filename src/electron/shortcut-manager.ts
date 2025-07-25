@@ -4,11 +4,7 @@ import Store from "electron-store";
 import { ShortcutProps } from "./types.js";
 import * as utils from "./utils.js";
 import * as constants from "./constants.js";
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
+import { Settings } from "./types.js";
 
 export class ShortcutManager {
   private shortcutList: Record<string, ShortcutProps> = {};

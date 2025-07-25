@@ -162,3 +162,9 @@ export interface StepData {
   applicationPath: string;
   filePath: string;
 }
+
+export type Settings = {
+  notificationBannersEnabled: boolean;
+  notificationSoundsEnabled: boolean;
+  launchOnStartup: boolean;
+};

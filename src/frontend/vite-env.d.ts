@@ -1,11 +1,6 @@
 /// <reference types="vite/client" />
 
-import { ShortcutProps } from "./types.js";
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
+import { ShortcutProps, Settings } from "./types.js";
 
 declare global {
   interface Window {

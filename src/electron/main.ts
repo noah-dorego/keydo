@@ -4,18 +4,14 @@ import Store from "electron-store";
 
 import * as utils from "./utils.js";
 import * as constants from "./constants.js";
-import { ShortcutProps } from "./types.js";
+import { ShortcutProps, Settings } from "./types.js";
 import { ShortcutManager } from "./shortcut-manager.js";
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
 
 const store = new Store<Settings>({
   defaults: {
     notificationBannersEnabled: true,
     notificationSoundsEnabled: true,
+    launchOnStartup: false,
   },
 });
 
@@ -57,6 +53,13 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
+  // Initialize launch on startup setting
+  const launchOnStartup = store.get("launchOnStartup");
+  app.setLoginItemSettings({
+    openAtLogin: launchOnStartup,
+    openAsHidden: true,
+  });
+
   globalShortcut.register(constants.startCommand, () => {
     if (!mainWindow) {
       createWindow();
@@ -86,6 +89,7 @@ app.whenReady().then(() => {
     return {
       notificationBannersEnabled: store.get("notificationBannersEnabled"),
       notificationSoundsEnabled: store.get("notificationSoundsEnabled"),
+      launchOnStartup: store.get("launchOnStartup"),
     };
   });
 
@@ -93,6 +97,15 @@ app.whenReady().then(() => {
     "settings:update",
     (event, { key, value }: { key: keyof Settings; value: boolean }) => {
       store.set(key, value);
+      
+      // Handle launch on startup setting
+      if (key === "launchOnStartup") {
+        app.setLoginItemSettings({
+          openAtLogin: value,
+          openAsHidden: true, // Start minimized to tray
+        });
+      }
+      
       return { success: true };
     }
   );

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Store from 'electron-store';
 import { FILE_ORGANIZATION_EXTENSIONS } from './constants.js';
-import { ShortcutProps } from './types.js';
+import { ShortcutProps, Settings } from './types.js';
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -50,11 +50,6 @@ export interface FileOrganizationDetails {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionDetails = Record<string, any>;
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
 
 export class ActionExecutor {
   static async executeTextAction(actionDetails: TextActionDetails): Promise<{ success: boolean; message: string }> {

@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Switch } from "@/frontend/components/ui/switch.tsx";
 import { useTheme } from "@/frontend/components/theme-provider.tsx";
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
+import { Settings, Key} from "@/frontend/types.ts";
+import { KeyIcon } from "../components/key-icon.tsx";
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     notificationBannersEnabled: true,
     notificationSoundsEnabled: true,
+    launchOnStartup: false,
   });
   const { theme, setTheme } = useTheme();
 
@@ -94,6 +92,32 @@ export function SettingsPage() {
                   checked={settings.notificationSoundsEnabled}
                   onCheckedChange={(value: boolean) =>
                     handleSettingChange("notificationSoundsEnabled", value)
+                  }
+                />
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-4">Application</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-[1fr_auto] gap-4">
+                <label htmlFor="launch-on-startup">Shortcut to Open keydo</label>
+                <div className="flex items-center space-x-2">
+                  <KeyIcon>{Key.CmdOrCtrl}</KeyIcon>
+                  <span>+</span>
+                  <KeyIcon>{Key.Alt}</KeyIcon>
+                  <span>+</span>
+                  <KeyIcon>{Key.X}</KeyIcon>
+                </div>
+              </div>
+              <div className="grid grid-cols-[1fr_auto] gap-4">
+                <label htmlFor="launch-on-startup">Launch on Startup</label>
+                <Switch
+                  id="launch-on-startup"
+                  checked={settings.launchOnStartup}
+                  onCheckedChange={(value: boolean) =>
+                    handleSettingChange("launchOnStartup", value)
                   }
                 />
               </div>

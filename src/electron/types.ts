@@ -14,4 +14,10 @@ export enum ActionType {
   File = "file",
   Builtin = "builtin",
   Ai = "ai",
-} 
+}
+
+export type Settings = {
+  notificationBannersEnabled: boolean;
+  notificationSoundsEnabled: boolean;
+  launchOnStartup: boolean;
+}; 

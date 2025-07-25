@@ -3,13 +3,8 @@ import { app, globalShortcut } from "electron";
 import fs from "fs";
 import Store from "electron-store";
 import { SHORTCUT_LIST_PATH } from "./constants.js";
-import { ShortcutProps } from "./types.js";
+import { ShortcutProps, Settings } from "./types.js";
 import { ActionExecutor } from "./actions.js";
-
-type Settings = {
-  notificationBannersEnabled: boolean;
-  notificationSoundsEnabled: boolean;
-};
 
 export function isDev(): boolean {
   return process.env.NODE_ENV === "development";
