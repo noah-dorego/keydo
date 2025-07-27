@@ -1,4 +1,4 @@
-import { Key } from "@/ui/types.ts";
+import { Key } from "@/frontend/types.ts";
 import { Card } from "./ui/card.tsx";
 
 type KeyIconProps = {

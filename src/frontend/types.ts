@@ -3,9 +3,9 @@ export enum Key {
   Tab = "Tab",
   Enter = "Enter",
   Shift = "Shift",
-  Control = "Control",
-  Command = "Command",
-  CommandOrControl = "CommandOrControl",
+  Ctrl = "Ctrl",
+  Cmd = "Cmd",
+  CmdOrCtrl = "CmdOrCtrl",
   Alt = "Alt",
   CapsLock = "CapsLock",
   Escape = "Escape",
@@ -46,32 +46,6 @@ export enum Key {
   Asterisk = "*",
   Nine = "9",
   OpenParen = "(",
-  a = "a",
-  b = "b",
-  c = "c",
-  d = "d",
-  e = "e",
-  f = "f",
-  g = "g",
-  h = "h",
-  i = "i",
-  j = "j",
-  k = "k",
-  l = "l",
-  m = "m",
-  n = "n",
-  o = "o",
-  p = "p",
-  q = "q",
-  r = "r",
-  s = "s",
-  t = "t",
-  u = "u",
-  v = "v",
-  w = "w",
-  x = "x",
-  y = "y",
-  z = "z",
   A = "A",
   B = "B",
   C = "C",
@@ -128,6 +102,13 @@ export enum Key {
   Quote = "'",
 }
 
+export enum ActionType {
+  Script = "script",
+  Text = "text",
+  File = "file",
+  Ai = "ai",
+}
+
 export type ActionParams = string | number | boolean | object;
 
 export type ShortcutProps = {
@@ -135,5 +116,55 @@ export type ShortcutProps = {
   name: string;
   accelerator: string;
   actionType: string;
-  actionDetails: Record<string, ActionParams>;
+  actionDetails: Record<string, ActionParams> | undefined;
+};
+
+export interface ShortcutActionType {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  comingSoon?: boolean;
+}
+
+export interface TextManipulationType {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+}
+
+export interface FileStructureType {
+  id: string;
+  name:string;
+  icon: React.ElementType;
+}
+
+export interface AddShortcutModalProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onShortcutAdded: () => void;
+}
+
+export interface LocalShortcutKey {
+  modifier?: (Key | null)[];
+  key: Key | null;
+}
+
+export interface StepData {
+  actionType: string;
+  textManipulationType: string;
+  builtinType: string;
+  fileSystemType: string;
+  scriptPath: string;
+  websiteUrl: string;
+  shortcutName: string;
+  definedShortcut: LocalShortcutKey | null;
+  pasteText: string;
+  applicationPath: string;
+  filePath: string;
+}
+
+export type Settings = {
+  notificationBannersEnabled: boolean;
+  notificationSoundsEnabled: boolean;
+  launchOnStartup: boolean;
 };

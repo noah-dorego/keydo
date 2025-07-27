@@ -1,13 +1,23 @@
 import { app, globalShortcut, BrowserWindow, ipcMain } from "electron";
 import path from "path";
-import fs from "fs";
+import Store from "electron-store";
 
 import * as utils from "./utils.js";
 import * as constants from "./constants.js";
+import { ShortcutProps, Settings } from "./types.js";
+import { ShortcutManager } from "./shortcut-manager.js";
+
+const store = new Store<Settings>({
+  defaults: {
+    notificationBannersEnabled: true,
+    notificationSoundsEnabled: true,
+    launchOnStartup: false,
+  },
+});
 
 let mainWindow: BrowserWindow | null;
 
-let shortcutList = {};
+const shortcutManager = new ShortcutManager(store);
 
 const createWindow = () => {
   // Create the browser window.
@@ -15,6 +25,10 @@ const createWindow = () => {
     webPreferences: {
       preload: utils.getPreloadPath(),
     },
+    width: 1000,
+    height: 700,
+    minWidth: 1000,
+    minHeight: 700,
   });
 
   // Load from hosted port in dev mode, and from build in prod
@@ -39,27 +53,18 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
-  // Get list of shortvuts from file (if exists)
-  if (fs.existsSync(constants.SHORTCUT_LIST_PATH)) {
-    try {
-      shortcutList = JSON.parse(
-        fs.readFileSync(constants.SHORTCUT_LIST_PATH, "utf-8")
-      );
-    } catch (error) {
-      console.log("unable to read file: ", error);
-    }
-  } else {
-    console.log("file doesn't exist");
-    fs.writeFileSync(constants.SHORTCUT_LIST_PATH, "{}");
-  }
+  // Initialize launch on startup setting
+  const launchOnStartup = store.get("launchOnStartup");
+  app.setLoginItemSettings({
+    openAtLogin: launchOnStartup,
+    openAsHidden: true,
+  });
 
   globalShortcut.register(constants.startCommand, () => {
     if (!mainWindow) {
       createWindow();
     }
   });
-
-  utils.registerShortcut("Alt+A", "testName");
 
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
@@ -68,16 +73,52 @@ app.whenReady().then(() => {
   });
 
   // Define IPC event handlers
-  ipcMain.handle("add-shortcut", (event, data) => {
-    console.log("adding shortcut: ", data);
-    utils.registerShortcut(data.accelerator, data.actionType);
-    // write to file
-    return "adding event";
+  ipcMain.handle("add-shortcut", (event, data: ShortcutProps) => {
+    return shortcutManager.addShortcut(data);
   });
 
   ipcMain.handle("get-shortcuts", () => {
-    return shortcutList;
+    return shortcutManager.getShortcuts();
   });
+
+  ipcMain.handle("delete-shortcut", (event, shortcutId) => {
+    return shortcutManager.deleteShortcut(shortcutId);
+  });
+
+  ipcMain.handle("settings:get", () => {
+    return {
+      notificationBannersEnabled: store.get("notificationBannersEnabled"),
+      notificationSoundsEnabled: store.get("notificationSoundsEnabled"),
+      launchOnStartup: store.get("launchOnStartup"),
+    };
+  });
+
+  ipcMain.handle(
+    "settings:update",
+    (event, { key, value }: { key: keyof Settings; value: boolean }) => {
+      store.set(key, value);
+      
+      // Handle launch on startup setting
+      if (key === "launchOnStartup") {
+        app.setLoginItemSettings({
+          openAtLogin: value,
+          openAsHidden: true, // Start minimized to tray
+        });
+      }
+      
+      return { success: true };
+    }
+  );
+
+  ipcMain.handle("play-shortcut-sound", () => {
+    // Send a message to the renderer process to play the sound
+    if (mainWindow) {
+      mainWindow.webContents.send("play-shortcut-sound");
+    }
+    return { success: true };
+  });
+
+
 });
 
 // Do not quit when windows are closed, continue listening for shortcuts
