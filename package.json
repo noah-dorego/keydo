@@ -1,7 +1,7 @@
 {
   "name": "keydo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -14,7 +14,9 @@
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
     "dist:mac": "npm run transpile:electron && npm run build && electron-builder --mac --arm64",
     "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
-    "dist:linux": "npm run transpile:electron && npm run build && electron-builder --linux --x64"
+    "dist:linux": "npm run transpile:electron && npm run build && electron-builder --linux --x64",
+    "dist:all": "npm run transpile:electron && npm run build && electron-builder -mwl",
+    "release": "npm run dist:all && electron-builder --publish=always"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",

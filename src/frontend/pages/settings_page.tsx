@@ -108,7 +108,7 @@ export function SettingsPage() {
                   <span>+</span>
                   <KeyIcon>{Key.Alt}</KeyIcon>
                   <span>+</span>
-                  <KeyIcon>{Key.X}</KeyIcon>
+                  <KeyIcon>{Key.K}</KeyIcon>
                 </div>
               </div>
               <div className="grid grid-cols-[1fr_auto] gap-4">

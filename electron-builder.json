@@ -1,16 +1,21 @@
 {
-    "appId": "com.ndorego.keydo",
+    "appId": "com.noahdorego.keydo",
     "files": ["dist-electron", "dist-react"],
     "extraResources": ["dist-electron/preload.cjs"],
-    "icon": "./keydo_logo_dark.png",
+    "icon": "./public/keydo_logo_dark.png",
     "mac": {
         "target": "dmg"
     },
     "linux": {
-    "target": "AppImage",
-    "category": "Utility"
+        "target": "AppImage",
+        "category": "Utility"
     },
     "win": {
         "target": ["nsis"]
+    },
+    "publish": {
+        "provider": "github",
+        "owner": "noah-dorego",
+        "repo": "keydo"
     }
 }

@@ -9,7 +9,7 @@ declare global {
       addShortcut: (
         data: ShortcutProps
       ) => Promise<{ success: boolean; message: string }>;
-      deleteShortcut: (shortcutId: string) => Promise<{ success: boolean }>;
+      deleteShortcut: (shortcutId: string) => Promise<{ success: boolean; message: string }>;
       playShortcutSound: () => Promise<{ success: true }>;
       onPlayShortcutSound: (callback: () => void) => void;
       getSettings: () => Promise<Settings>;
