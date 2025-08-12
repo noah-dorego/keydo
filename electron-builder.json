@@ -1,5 +1,5 @@
 {
-    "appId": "com.ndorego.keydo",
+    "appId": "com.noahdorego.keydo",
     "files": ["dist-electron", "dist-react"],
     "extraResources": ["dist-electron/preload.cjs"],
     "icon": "./public/keydo_logo_dark.png",
@@ -7,10 +7,15 @@
         "target": "dmg"
     },
     "linux": {
-    "target": "AppImage",
-    "category": "Utility"
+        "target": "AppImage",
+        "category": "Utility"
     },
     "win": {
         "target": ["nsis"]
+    },
+    "publish": {
+        "provider": "github",
+        "owner": "noah-dorego",
+        "repo": "keydo"
     }
 }
